@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h4 class="mb-0">📜 ประวัติการทำรายการ</h4>
+    </div>
+    <div class="card-body">
+        <!-- Search Form -->
+        <form class="mb-4">
+            <div class="input-group">
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="ค้นหาด้วยชื่อ Agent, วันที่, หรือหมายเหตุ..." 
+                       name="q"
+                       value="{{ request.args.get('q', '') }}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> ค้นหา
+                </button>
+            </div>
+        </form>
+
+        <!-- Transactions Table -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>วันที่</th>
+                        <th>Agent</th>
+                        <th class="text-end">สมาชิกใหม่</th>
+                        <th class="text-end">ฝากรวม</th>
+                        <th class="text-end">ถอนรวม</th>
+                        <th class="text-end">ขาด/เกิน</th>
+                        <th>สถานะ</th>
+                        <th>การดำเนินการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ transaction.agent }}</td>
+                        <td class="text-end">{{ transaction.new_members|number_format(0) }}</td>
+                        
+                        <!-- Deposits -->
+                        <td class="text-end text-success fw-bold">
+                            ฿{{ (transaction.kbank_deposit + transaction.kbiz_deposit + transaction.scb1_deposit + transaction.scb2_deposit + transaction.true_deposit)|number_format(2) }}
+                        </td>
+                        
+                        <!-- Withdrawals -->
+                        <td class="text-end text-danger fw-bold">
+                            ฿{{ (transaction.kbank_withdrawal + transaction.kbiz_withdrawal + transaction.scb1_withdrawal + transaction.scb2_withdrawal + transaction.true_withdrawal + transaction.commission)|number_format(2) }}
+                        </td>
+                        
+                        <!-- Balance -->
+                        <td class="text-end fw-bold">
+                            {% set balance = transaction.transfer - (
+                                (transaction.kbank_deposit + transaction.kbiz_deposit + transaction.scb1_deposit + 
+                                transaction.scb2_deposit + transaction.true_deposit) - 
+                                (transaction.kbank_withdrawal + transaction.kbiz_withdrawal + 
+                                transaction.scb1_withdrawal + transaction.scb2_withdrawal + 
+                                transaction.true_withdrawal + transaction.commission)
+                            ) %}
+                            <span class="{{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                                ฿{{ balance|number_format(2) }}
+                            </span>
+                        </td>
+                        
+                        <!-- Status Badge -->
+                        <td>
+                            <span class="badge {{ 'bg-success' if balance >= 0 else 'bg-danger' }}">
+                                {{ 'เกินงบ' if balance >= 0 else 'ขาดทุน' }}
+                            </span>
+                        </td>
+                        
+                        <!-- Actions -->
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="/export/{{ transaction._id }}" 
+                                   class="btn btn-sm btn-success"
+                                   title="Export to Excel">
+                                    <i class="fas fa-file-excel"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('delete_transaction', transaction_id=transaction._id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="ลบรายการ">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i>ไม่พบรายการที่ค้นหา
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">
+                            <i class="fas fa-coins me-2"></i>ฝากรวมทั้งหมด
+                        </h5>
+                        <p class="card-text display-6 text-success">
+                            ฿{{ total_deposits|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card border-danger">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">
+                            <i class="fas fa-money-bill-wave me-2"></i>ถอนรวมทั้งหมด
+                        </h5>
+                        <p class="card-text display-6 text-danger">
+                            ฿{{ total_withdrawals|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card {{ 'border-success' if net_balance >= 0 else 'border-danger' }}">
+                    <div class="card-body">
+                        <h5 class="card-title {{ 'text-success' if net_balance >= 0 else 'text-danger' }}">
+                            <i class="fas fa-scale-balanced me-2"></i>คงเหลือสุทธิ
+                        </h5>
+                        <p class="card-text display-6 {{ 'text-success' if net_balance >= 0 else 'text-danger' }}">
+                            ฿{{ net_balance|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ฟังก์ชันจัดรูปแบบตัวเลข
+    function numberFormat(value, decimals = 2) {
+        return parseFloat(value).toFixed(decimals).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+    
+    // ลงทะเบียนฟิลเตอร์ใน Jinja
+    window.jinja_filters = window.jinja_filters || {};
+    window.jinja_filters.number_format = numberFormat;
+</script>
+{% endblock %}

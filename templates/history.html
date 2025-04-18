@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h4 class="mb-0">📜 ประวัติการทำรายการ</h4>
+    </div>
+    <div class="card-body">
+        <!-- Filter Form -->
+        <form class="mb-4" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">ชื่อเว็บ</label>
+                    <select class="form-select" name="agent">
+                        <option value="">ทั้งหมด</option>
+                        {% if unique_agents %}
+                            {% for agent in unique_agents|sort %}
+                            <option value="{{ agent }}" 
+                                    {% if agent|string == selected_agent|string %}selected{% endif %}>
+                                {{ agent }}
+                            </option>
+                            {% endfor %}
+                        {% else %}
+                            <option disabled>ไม่มีข้อมูล Agent ในระบบ</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">เดือน</label>
+                    <select class="form-select" name="month">
+                        <option value="">ทั้งหมด</option>
+                        {% for my in months_years %}
+                        <option value="{{ my._id.month }}" 
+                                {% if my._id.month|string == selected_month %}selected{% endif %}>
+                            {{ my._id.month }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">ปี</label>
+                    <select class="form-select" name="year">
+                        <option value="">ทั้งหมด</option>
+                        {% for my in months_years %}
+                        <option value="{{ my._id.year }}" 
+                                {% if my._id.year|string == selected_year %}selected{% endif %}>
+                            {{ my._id.year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- <div class="col-md-100">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> กรองข้อมูล
+                    </button>
+                </div> -->
+            </div>
+        </form>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card border-success h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">ยอดฝากรวม</h5>
+                        <p class="card-text display-6 text-success">
+                            ฿{{ total_deposit|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">ยอดถอนรวม</h5>
+                        <p class="card-text display-6 text-danger">
+                            ฿{{ total_withdrawal|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-warning h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">ค่าคอมรวม</h5>
+                        <p class="card-text display-6 text-warning">
+                            ฿{{ total_commission|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-info h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">โบนัสรวม</h5>
+                        <p class="card-text display-6 text-info">
+                            ฿{{ total_bonus|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card {{ 'border-success' if balance >= 0 else 'border-danger' }} h-100">
+                    <div class="card-body">
+                        <h5 class="card-title {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                            ยอดดุลรวม
+                        </h5>
+                        <p class="card-text display-6 {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                            ฿{{ balance|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Search Form -->
+        <form class="mb-4">
+            <div class="input-group">
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="ค้นหาด้วยชื่อ Agent, วันที่, หรือหมายเหตุ..." 
+                       name="q"
+                       value="{{ request.args.get('q', '') }}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> ค้นหา
+                </button>
+            </div>
+        </form>
+
+        <!-- Transactions List -->
+        <div class="list-group">
+            {% for transaction in transactions.items %}
+            <div class="list-group-item" style="min-height: auto;">
+                <!-- Header Section -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1">🔆 {{ transaction.agent }} 🔆</h5>
+                        <small class="text-muted">{{ transaction.date.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <!-- ปุ่มดำเนินการ -->
+                        <button class="btn btn-sm btn-outline-primary" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#details-{{ loop.index }}">
+                            ดูข้อมูลเพิ่มเติม
+                        </button>
+                        <form method="POST" 
+                            action="{{ url_for('delete_transaction', transaction_id=transaction._id) }}"
+                            onsubmit="return confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        <a href="/export/{{ transaction._id }}" 
+                        class="btn btn-sm btn-success"
+                        title="Export to Excel">
+                            <i class="fas fa-file-excel"></i>
+                        </a>
+                    </div>
+                </div>
+                <!-- Collapsible Details -->
+                <div class="collapse mt-3" id="details-{{ loop.index }}">
+                    <div class="telegram-message" id="telegram-message-{{ loop.index }}">
+                        {%- set total_deposit = transaction.kbank_deposit + transaction.kbiz_deposit + 
+                            transaction.scb1_deposit + transaction.scb2_deposit + 
+                            transaction.true_deposit -%}
+    {%- set total_withdrawal = transaction.kbank_withdrawal + transaction.kbiz_withdrawal + 
+                             transaction.scb1_withdrawal + transaction.scb2_withdrawal + 
+                             transaction.true_withdrawal -%}
+    {%- set total_withdrawal_com = total_withdrawal + transaction.commission -%}
+    {%- set atm_balance = total_deposit - (total_withdrawal + transaction.commission) -%}
+    {%- set shortfall = transaction.transfer - atm_balance -%}
+    {{  "🔆" ~ transaction.agent ~ " ปิดกะ🔆\n" ~
+        "▫️วันที่สรุปข้อมูล : " ~ transaction.date.strftime('%d/%m/%Y') ~ "\n" ~
+        "▫️สมาชิกใหม่ : " ~ transaction.new_members|string ~ " ฝากแล้ว : " ~ transaction.first_deposit|number_format(2) ~ "\n" ~
+        "▫️ฝากครั้งแรกรวม : " ~ transaction.all_deposit|number_format(2) ~ "\n\n" ~
+        "▫️แอคทีฟ : " ~ transaction.used|string ~ "\n\n" ~
+        "🟢 Total : " ~ (atm_balance + transaction.get('db', 0))|number_format(2) ~ "\n" ~
+        "🟢 DB : " ~ transaction.get('db', 0)|number_format(2) ~ "\n" ~
+        "🟢 ATM : " ~ atm_balance|number_format(2) ~ "\n\n" ~
+        "🔺Total THB ชนะ/แพ้ : " ~ transaction.profit_thb|number_format(2) ~ "\n" ~
+        "🔺Total USDT ชนะ/แพ้ : " ~ transaction.profit_usdt|number_format(2) ~ "\n\n" ~
+        "💸 ยอดฝาก 💸\n" ~
+        "▫️KBANK: " ~ transaction.kbank_deposit|number_format(2) ~ "\n" ~
+        "▫️KBIZ: " ~ transaction.kbiz_deposit|number_format(2) ~ "\n" ~
+        "▫️SCB: " ~ transaction.scb1_deposit|number_format(2) ~ "\n" ~
+        "▫️SCB: " ~ transaction.scb2_deposit|number_format(2) ~ "\n" ~
+        "▫️TRUE: " ~ transaction.true_deposit|number_format(2) ~ "\n" ~
+        "✅ รวมฝาก: " ~ total_deposit|number_format(2) ~ "\n\n" ~
+        "📵 ยอดถอน 📵\n" ~
+        "▫️KBANK: " ~ transaction.kbank_withdrawal|number_format(2) ~ "\n" ~
+        "▫️KBIZ: " ~ transaction.kbiz_withdrawal|number_format(2) ~ "\n" ~
+        "▫️SCB: " ~ transaction.scb1_withdrawal|number_format(2) ~ "\n" ~
+        "▫️SCB: " ~ transaction.scb2_withdrawal|number_format(2) ~ "\n" ~
+        "▫️TRUE: " ~ transaction.true_withdrawal|number_format(2) ~ "\n" ~
+        "✅ รวมถอน: " ~ total_withdrawal|number_format(2) ~ "\n\n" ~
+        "▫️ฝากมือ: " ~ transaction.mobile_deposit|number_format(2) ~ "\n" ~
+        "▫️รายการถอน ที่อนุมัติโดยแอดมิน: " ~ total_withdrawal|number_format(2) ~ "\n" ~
+        "▫️ถอนค่าคอม: " ~ transaction.commission|number_format(2) ~ "\n" ~
+        "▫️โบนัส: " ~ transaction.bonus|number_format(2) ~ "\n" ~
+        "_________________________________________\n\n" ~
+        "✅ รวมถอน(ยอดถอน + ถอนคอม) = " ~ total_withdrawal_com|number_format(2) ~ "\n" ~
+        "✅ สรุป: " ~ atm_balance|number_format(2) ~ " บาท\n" ~
+        "🔰 โอนเข้าพัก: " ~ transaction.transfer|number_format(2) ~ " บาท\n" ~
+        "💵 ขาด/เกิน: " ~ shortfall|number_format(2) ~ " บาท"
+    }}
+                    </div>
+                    <!-- เพิ่มปุ่มคัดลอก -->
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" 
+                                onclick="copyTelegramMessage('telegram-message-{{ loop.index }}')"
+                                title="คัดลอกข้อความ">
+                            <i class="fas fa-copy me-2"></i>คัดลอก
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-info-circle me-2"></i>ไม่พบรายการที่ค้นหา
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if transactions.pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if transactions.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" 
+                    href="{{ url_for('show_history', 
+                                    page=transactions.prev_num, 
+                                    month=selected_month, 
+                                    year=selected_year, 
+                                    q=request.args.get('q')) }}">
+                        &laquo; ก่อนหน้า
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in transactions.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == transactions.page %}active{% endif %}">
+                            <a class="page-link" 
+                            href="{{ url_for('show_history', 
+                                            page=page_num, 
+                                            month=selected_month, 
+                                            year=selected_year, 
+                                            q=request.args.get('q')) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if transactions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" 
+                       href="{{ url_for('show_history', 
+                                       page=transactions.next_num, 
+                                       month=selected_month, 
+                                       year=selected_year, 
+                                       q=request.args.get('q')) }}">
+                        ถัดไป &raquo;
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function copyTelegramMessage(elementId) {
+    const messageElement = document.getElementById(elementId);
+    const text = messageElement.textContent;
+    
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            const btn = document.querySelector(`button[onclick="copyTelegramMessage('${elementId}')"]`);
+            const tooltip = new bootstrap.Tooltip(btn, {
+                title: 'คัดลอกแล้ว!',
+                trigger: 'manual'
+            });
+            tooltip.show();
+            setTimeout(() => tooltip.hide(), 1000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            alert('เกิดข้อผิดพลาดในการคัดลอก');
+        });
+}
+
+// Auto-submit filter form
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        const selects = filterForm.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', () => filterForm.submit());
+        });
+    }
+});
+</script>
+{% endblock %}
+

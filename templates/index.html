@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4>📝 บันทึกรายการใหม่</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="/submit">
+            <div class="row g-3">
+                <!-- ส่วนเลือก Agent และวันที่ -->
+                <div class="col-md-6">
+                    <label class="form-label">🔖 เลือก Agent</label>
+                    <select class="form-select" name="agent" required>
+                        <option value="">-- กรุณาเลือก Agent --</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.name }}">{{ agent.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">📅 วันที่ทำรายการ</label>
+                    <input type="date" class="form-control" name="date" required 
+                           value="{{ datetime.now().strftime('%d-%m-%y') }}">
+                </div>
+                <!-- ข้อมูลพื้นฐาน -->
+                <div class="col-md-4">
+                    <label class="form-label">👥 สมาชิกใหม่</label>
+                    <input type="number" class="form-control" name="new_members" min="0" required value="0">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">👥 ฝากแล้ว</label>
+                    <input type="number" class="form-control" name="first_deposit" step="0.01" min="0" required value="0">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">💳 ฝากครั้งแรกรวม</label>
+                    <input type="number" class="form-control" name="all_deposit" step="0.01" min="0" required value="0">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">📊 แอคทีฟ</label>
+                    <input type="number" class="form-control" name="used" min="0" required value="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">🔺 Total THB ชนะ/แพ้</label>
+                    <input type="number" class="form-control" name="profit_thb" step="0.01" required value="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">🔺 Total USDT ชนะ/แพ้</label>
+                    <input type="number" class="form-control" name="profit_usdt" step="0.01" required value="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">🟢 DB</label>
+                    <input type="number" 
+                           class="form-control" 
+                           name="db" 
+                           step="0.01" 
+                           min="0" 
+                           required 
+                           value="50000">
+                </div>
+                <!-- ส่วนฝากเงิน -->
+                <div class="col-12 mt-4 border-top pt-3">
+                    <h5 class="text-primary">💸 ฝากเงิน</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">KBANK</label>
+                            <input type="number" class="form-control" name="kbank_deposit" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">K-BIZ</label>
+                            <input type="number" class="form-control" name="kbiz_deposit" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb1_deposit" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb2_deposit" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">TRUE Wallet</label>
+                            <input type="number" class="form-control" name="true_deposit" step="0.01" min="0" required value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ส่วนถอนเงิน -->
+                <div class="col-12 mt-4 border-top pt-3">
+                    <h5 class="text-danger">📵 ถอนเงิน</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">KBANK</label>
+                            <input type="number" class="form-control" name="kbank_withdrawal" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">K-BIZ</label>
+                            <input type="number" class="form-control" name="kbiz_withdrawal" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb1_withdrawal" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb2_withdrawal" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">TRUE Wallet</label>
+                            <input type="number" class="form-control" name="true_withdrawal" step="0.01" min="0" required value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ข้อมูลการเงิน -->
+                <div class="col-12 mt-4 border-top pt-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">เติมมือ</label>
+                            <input type="number" class="form-control" name="mobile_deposit" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">💼 ถอนค่าคอม</label>
+                            <input type="number" class="form-control" name="commission" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">🎁 โบนัส</label>
+                            <input type="number" class="form-control" name="bonus" step="0.01" min="0" required value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">🏦 โอนเข้าพัก</label>
+                            <input type="number" class="form-control" name="transfer" step="0.01" min="0" required value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ปุ่มส่งข้อมูล -->
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        💾 บันทึกข้อมูล
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
