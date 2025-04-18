@@ -10,7 +10,6 @@ from io import BytesIO
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from pymongo import TEXT
 from math import ceil
-import query
 
 load_dotenv()
 
@@ -384,4 +383,5 @@ def export_excel(transaction_id):
         return redirect(url_for('show_history'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
