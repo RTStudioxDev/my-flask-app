@@ -1,0 +1,14 @@
+# .gitignore
+*.pyc
+*.session
+*.log
+.env
+__pycache__/
+venv/
+.vscode/
+VirtualBox VMs/
+.DS_Store
+*.sqlite
+*.db
+*.bak
+*.tmp
