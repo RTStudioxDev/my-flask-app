@@ -367,6 +367,8 @@ def export_excel(transaction_id):
                 cell.number_format = '#,##0.00'
             elif col_num in [2,3,4,5]:
                 cell.number_format = '#,##0.00'
+            elif col_num in [2,3,5]:
+                cell.fill = gray_fill
             else:
                 cell.fill = gray_fill
                 cell.number_format = '#,##0'
