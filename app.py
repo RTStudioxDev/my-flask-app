@@ -321,23 +321,22 @@ def export_excel(transaction_id):
         atm_balance = total_deposit - (total_withdrawal + transaction.get('commission', 0))
         shortfall = transaction.get('transfer', 0) - atm_balance
 
-        # ใส่ข้อมูล
         data_row = [
             transaction['date'].strftime('%d/%m/%Y'),
             total_deposit,
             transaction.get('mobile_deposit', 0),
             total_withdrawal,
-            # total_withdrawal, #ใส่สูตร(E3)
+            total_withdrawal, #ใส่สูตร(E3)
             shortfall,
-            # total_deposit - (total_withdrawal + transaction.get('commission', 0)) + shortfall, #ใส่สูตร(G3)
+            total_deposit - (total_withdrawal + transaction.get('commission', 0)) + shortfall, #ใส่สูตร(G3)
             transaction.get('new_members', 0),
             transaction.get('first_deposit', 0),
-            # transaction.get('new_members', 0) - transaction.get('first_deposit', 0), #ใส่สูตร(J3)
+            transaction.get('new_members', 0) - transaction.get('first_deposit', 0), #ใส่สูตร(J3)
             transaction.get('all_deposit', 0),
             transaction.get('used', 0),
             transaction.get('bonus', 0),
             transaction.get('commission', 0)
-        ]        
+        ]      
 
         for col_num, value in enumerate(data_row, 1):
             cell = ws.cell(row=3, column=col_num)
