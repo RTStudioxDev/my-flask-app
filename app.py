@@ -19,6 +19,7 @@ app.secret_key = os.getenv('SECRET_KEY')
 client = MongoClient(os.getenv('MONGODB_URI'))
 db = client['finance_web_app']
 
+
 with app.app_context():
     db.transactions.create_index([('agent', TEXT)])
 
@@ -277,6 +278,7 @@ def export_excel(transaction_id):
         green_fill = PatternFill(start_color='D9EAD3', fill_type='solid')
         red_fill = PatternFill(start_color='F4CCCC', fill_type='solid')
         gray_fill = PatternFill(start_color='F3F3F3', fill_type='solid')
+        blue_fill = PatternFill(start_color='c9daf8', end_color='c9daf8', fill_type='solid')   # Light blue
         border = Border(left=Side(style='thin'), right=Side(style='thin'),
                         top=Side(style='thin'), bottom=Side(style='thin'))
 
@@ -325,17 +327,24 @@ def export_excel(transaction_id):
             total_deposit,
             transaction.get('mobile_deposit', 0),
             total_withdrawal,
-            total_withdrawal,
+            # total_withdrawal,
             shortfall,
-            total_deposit - (total_withdrawal + transaction.get('commission', 0)) + shortfall,
+            # total_deposit - (total_withdrawal + transaction.get('commission', 0)) + shortfall,
             transaction.get('new_members', 0),
             transaction.get('first_deposit', 0),
-            transaction.get('new_members', 0) - transaction.get('first_deposit', 0),
+            # transaction.get('new_members', 0) - transaction.get('first_deposit', 0),
             transaction.get('all_deposit', 0),
             transaction.get('used', 0),
             transaction.get('bonus', 0),
             transaction.get('commission', 0)
         ]
+        # ใส่สูตร
+        ws['E3'] = '=sum(D3)'
+        ws['G3'] = '=sum(B3-(D3+N3)+F3)' #กำไร
+        ws['J3'] = '=SUM(H3-I3)'     # ไม่ฝาก
+        # ใส่สี
+        ws['D3'].fill = red_fill
+        ws['M3'].fill = blue_fill
 
         for col_num, value in enumerate(data_row, 1):
             cell = ws.cell(row=3, column=col_num, value=value)
