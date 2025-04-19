@@ -278,7 +278,7 @@ def export_excel(transaction_id):
         green_fill = PatternFill(start_color='D9EAD3', fill_type='solid')
         red_fill = PatternFill(start_color='F4CCCC', fill_type='solid')
         gray_fill = PatternFill(start_color='F3F3F3', fill_type='solid')
-        blue_fill = PatternFill(start_color='c9daf8', end_color='c9daf8', fill_type='solid')   # Light blue
+        blue_fill = PatternFill(start_color='c9daf8', fill_type='solid')
         border = Border(left=Side(style='thin'), right=Side(style='thin'),
                         top=Side(style='thin'), bottom=Side(style='thin'))
 
@@ -327,53 +327,61 @@ def export_excel(transaction_id):
             total_deposit,
             transaction.get('mobile_deposit', 0),
             total_withdrawal,
-            # total_withdrawal,
+            total_withdrawal, #ใส่สูตร(E3)
             shortfall,
-            # total_deposit - (total_withdrawal + transaction.get('commission', 0)) + shortfall,
+            total_deposit - (total_withdrawal + transaction.get('commission', 0)) + shortfall, #ใส่สูตร(G3)
             transaction.get('new_members', 0),
             transaction.get('first_deposit', 0),
-            # transaction.get('new_members', 0) - transaction.get('first_deposit', 0),
+            transaction.get('new_members', 0) - transaction.get('first_deposit', 0), #ใส่สูตร(J3)
             transaction.get('all_deposit', 0),
             transaction.get('used', 0),
             transaction.get('bonus', 0),
             transaction.get('commission', 0)
-        ]
-        # ใส่สูตร
-        ws['E3'] = '=sum(D3)'
-        ws['G3'] = '=sum(B3-(D3+N3)+F3)' #กำไร
-        ws['J3'] = '=SUM(H3-I3)'     # ไม่ฝาก
-        # ใส่สี
-        ws['D3'].fill = red_fill
-        ws['M3'].fill = blue_fill
+        ]        
 
         for col_num, value in enumerate(data_row, 1):
-            cell = ws.cell(row=3, column=col_num, value=value)
-            cell.number_format = '#,##0.00'
+            cell = ws.cell(row=3, column=col_num)
+            
+            # กำหนดสูตรและค่า
+            if col_num == 5:    # E3
+                cell.value = '=SUM(D3)'
+                cell.number_format = '#,##0.00'
+            elif col_num == 7: # G3
+                cell.value = '=SUM(B3-(D3+N3)+F3)'
+            elif col_num == 10: # J3
+                cell.value = '=SUM(H3-I3)'
+            else:
+                cell.value = value  # ค่าปกติสำหรับคอลัมน์อื่นๆ
+            
+            # กำหนดสไตล์
             cell.border = border
-            if col_num in [6,7]: 
-                cell.fill = green_fill if value >= 0 else red_fill
+            cell.alignment = Alignment(horizontal='center')
+            
+            if col_num == 4:    # คอลัมน์ D
+                cell.fill = red_fill
+                cell.number_format = '#,##0.00'
+            elif col_num == 13: # คอลัมน์ M
+                cell.fill = blue_fill
+                cell.number_format = '#,##0.00'
+            elif col_num in [6,7]: # คอลัมน์ F และ G
+                cell.fill = green_fill if (value >= 0 if col_num != 5 else cell.value >= 0) else red_fill
+                cell.number_format = '#,##0.00'
+            elif col_num in [2,3,4,5]:
+                cell.number_format = '#,##0.00'
             else:
                 cell.fill = gray_fill
+                cell.number_format = '#,##0'
 
         # ปรับความกว้างคอลัมน์
         column_widths = [15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
         for i, width in enumerate(column_widths, 1):
             ws.column_dimensions[get_column_letter(i)].width = width
 
-        for col_num, value in enumerate(data_row, start=1):
-                cell = ws.cell(row=3, column=col_num, value=value)
-                cell.font = Font(name="Arial", bold=False, size=10)
-                if col_num in [1, 2, 3,]:  # Numeric columns
-                    cell.number_format = '#,##0.00'
-                    cell.alignment = Alignment(horizontal='center')
-                else:
-                    cell.alignment = Alignment(horizontal='center')
-
-        for col in range(1, 15):  # Columns A to N (1 to 14)
-                cell = ws.cell(row=2, column=col)
-                cell.font = Font(name="Arial", bold=False, size=8)
-                cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')  # สีส้ม
-                cell.alignment = Alignment(horizontal='center')
+        for col in range(1, 15):
+            cell = ws.cell(row=2, column=col)
+            cell.font = Font(name="Arial", bold=False, size=8)
+            cell.fill = yellow_fill
+            cell.alignment = Alignment(horizontal='center')
 
         # ส่งไฟล์กลับ
         buffer = BytesIO()
