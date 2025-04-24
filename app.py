@@ -352,8 +352,7 @@ def export_excel(transaction_id):
         ws['A1'] = f"สรุปยอดปิดกะ {transaction['agent']} วันที่ {transaction['date'].strftime('%d/%m/%Y')}"
         ws['A1'].font = Font(name="K2D", bold=True, size=15)
         ws['A1'].fill = header_fill
-        ws['A1'].alignment = Alignment(horizontal='center')
-        ws['A1'].alignment = Alignment(Vertical='center')
+        ws['A1'].alignment = Alignment(horizontal='center', Vertical='center')
 
         # ส่วนหัวตาราง
         headers = [
@@ -366,8 +365,7 @@ def export_excel(transaction_id):
             cell = ws.cell(row=2, column=col_num, value=header)
             cell.fill = yellow_fill
             cell.border = border
-            cell.alignment = Alignment(horizontal='center')
-            cell.alignment = Alignment(Vertical='center')
+            cell.alignment = Alignment(horizontal='center', Vertical='center')
             cell.font = font_header
 
         # คำนวณยอดรวมจากบัญชีแบบไดนามิก
@@ -409,8 +407,7 @@ def export_excel(transaction_id):
             
             # กำหนดสไตล์
             cell.border = border
-            cell.alignment = Alignment(horizontal='center')
-            cell.alignment = Alignment(Vertical='center')
+            cell.alignment = Alignment(horizontal='center', Vertical='center')
 
             # กำหนดฟอนต์
             if col_num == 1:  # A3
@@ -431,8 +428,7 @@ def export_excel(transaction_id):
         #         ws[f'B{row}'].fill = gray_fill
 
             if col_num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 14]:  # B2 C3, D3, E3
-                cell.alignment = Alignment(Vertical='center')
-                cell.alignment = Alignment(horizontal='center')
+                cell.alignment = Alignment(horizontal='center', Vertical='center')
 
             
             # กำหนดสีพื้นหลัง
