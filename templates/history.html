@@ -51,7 +51,6 @@
               </div>
           </div>
       </form>
-
       <!-- Summary Cards -->
       <div class="row mb-4">
         {% set total_deposit_all = transactions.items|map(attribute='deposit_amounts')|map('sum')|sum %}
