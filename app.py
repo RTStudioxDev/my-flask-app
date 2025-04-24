@@ -413,9 +413,18 @@ def export_excel(transaction_id):
                 cell.font = font_date
             else:
                 cell.font = font_normal
+
+            # กำหนดรูปแบบตัวเลข
+            if col_num in [2, 3, 5, 8, 9 , 10, 11, 12, 14]:  # B2 C3, D3, E3
+                cell.number_format = '#,##0.00'
+            elif col_num == 1:  # A3
+                cell.data_type = 'd"/"m"/"yyyy'
+            else:
+                cell.number_format = '#,##0'
+
             
             # กำหนดสีพื้นหลัง
-            if col_num in [3, 4, 5]:  # C3, D3, E3
+            if col_num in [2, 3, 5, 8, 9 , 10, 11, 12, 14]:  # C3, D3, E3
                 cell.fill = gray_fill
             elif col_num == 4:    # คอลัมน์ D
                 cell.fill = red_fill
@@ -434,22 +443,22 @@ def export_excel(transaction_id):
                 cell.fill = gray_fill
                 cell.number_format = '#,##0'
 
-        # เพิ่มรายการบัญชีใน Excel
-        if 'deposit_accounts' in transaction:
-            for i, (account, amount) in enumerate(zip(transaction['deposit_accounts'], transaction['deposit_amounts'])):
-                row = 5 + i
-                ws[f'A{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
-                ws[f'B{row}'] = amount
-                ws[f'B{row}'].number_format = '#,##0.00'
-                ws[f'B{row}'].fill = gray_fill
+        # # เพิ่มรายการบัญชีใน Excel
+        # if 'deposit_accounts' in transaction:
+        #     for i, (account, amount) in enumerate(zip(transaction['deposit_accounts'], transaction['deposit_amounts'])):
+        #         row = 5 + i
+        #         ws[f'A{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
+        #         ws[f'B{row}'] = amount
+        #         ws[f'B{row}'].number_format = '#,##0.00'
+        #         ws[f'B{row}'].fill = gray_fill
 
-        if 'withdrawal_accounts' in transaction:
-            for i, (account, amount) in enumerate(zip(transaction['withdrawal_accounts'], transaction['withdrawal_amounts'])):
-                row = 5 + i
-                ws[f'D{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
-                ws[f'E{row}'] = amount
-                ws[f'E{row}'].number_format = '#,##0.00'
-                ws[f'E{row}'].fill = gray_fill
+        # if 'withdrawal_accounts' in transaction:
+        #     for i, (account, amount) in enumerate(zip(transaction['withdrawal_accounts'], transaction['withdrawal_amounts'])):
+        #         row = 5 + i
+        #         ws[f'D{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
+        #         ws[f'E{row}'] = amount
+        #         ws[f'E{row}'].number_format = '#,##0.00'
+        #         ws[f'E{row}'].fill = gray_fill
 
         # ปรับความกว้างคอลัมน์
         column_widths = [15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
