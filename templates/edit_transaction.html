@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h4>✏️ แก้ไขรายการ</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('edit_transaction', transaction_id=transaction._id) }}">
+            <div class="row g-3">
+                <!-- ส่วนเลือก Agent และวันที่ -->
+                <div class="col-md-6">
+                    <label class="form-label">🔖 เลือก Agent</label>
+                    <select class="form-select" name="agent" required>
+                        <option value="">-- กรุณาเลือก Agent --</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.name }}" 
+                                {% if agent.name == transaction.agent %}selected{% endif %}>
+                            {{ agent.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">📅 วันที่ทำรายการ</label>
+                    <input type="date" class="form-control" name="date" required 
+                           value="{{ transaction.date.strftime('%Y-%m-%d') }}">
+                </div>
+
+                <!-- ข้อมูลพื้นฐาน -->
+                <div class="col-md-4">
+                    <label class="form-label">👥 สมาชิกใหม่</label>
+                    <input type="number" class="form-control" name="new_members" min="0" required 
+                           value="{{ transaction.new_members }}">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">👥 ฝากแล้ว</label>
+                    <input type="number" class="form-control" name="first_deposit" step="0.01" min="0" required 
+                           value="{{ transaction.first_deposit }}">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">💳 ฝากครั้งแรกรวม</label>
+                    <input type="number" class="form-control" name="all_deposit" step="0.01" min="0" required 
+                           value="{{ transaction.all_deposit }}">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">📊 แอคทีฟ</label>
+                    <input type="number" class="form-control" name="used" min="0" required 
+                           value="{{ transaction.used }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">🔺 Total THB ชนะ/แพ้</label>
+                    <input type="number" class="form-control" name="profit_thb" step="0.01" required 
+                           value="{{ transaction.profit_thb }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">🔺 Total USDT ชนะ/แพ้</label>
+                    <input type="number" class="form-control" name="profit_usdt" step="0.01" required 
+                           value="{{ transaction.profit_usdt }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">🟢 DB</label>
+                    <input type="number" class="form-control" name="db" step="0.01" min="0" required 
+                           value="{{ transaction.db }}">
+                </div>
+
+                <!-- ส่วนฝากเงิน -->
+                <div class="col-12 mt-4 border-top pt-3">
+                    <h5 class="text-primary">💸 ฝากเงิน</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">KBANK</label>
+                            <input type="number" class="form-control" name="kbank_deposit" step="0.01" min="0" required 
+                                   value="{{ transaction.kbank_deposit }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">K-BIZ</label>
+                            <input type="number" class="form-control" name="kbiz_deposit" step="0.01" min="0" required 
+                                   value="{{ transaction.kbiz_deposit }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb1_deposit" step="0.01" min="0" required 
+                                   value="{{ transaction.scb1_deposit }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb2_deposit" step="0.01" min="0" required 
+                                   value="{{ transaction.scb2_deposit }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">TRUE Wallet</label>
+                            <input type="number" class="form-control" name="true_deposit" step="0.01" min="0" required 
+                                   value="{{ transaction.true_deposit }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ส่วนถอนเงิน -->
+                <div class="col-12 mt-4 border-top pt-3">
+                    <h5 class="text-danger">📵 ถอนเงิน</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">KBANK</label>
+                            <input type="number" class="form-control" name="kbank_withdrawal" step="0.01" min="0" required 
+                                   value="{{ transaction.kbank_withdrawal }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">K-BIZ</label>
+                            <input type="number" class="form-control" name="kbiz_withdrawal" step="0.01" min="0" required 
+                                   value="{{ transaction.kbiz_withdrawal }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb1_withdrawal" step="0.01" min="0" required 
+                                   value="{{ transaction.scb1_withdrawal }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">SCB</label>
+                            <input type="number" class="form-control" name="scb2_withdrawal" step="0.01" min="0" required 
+                                   value="{{ transaction.scb2_withdrawal }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">TRUE Wallet</label>
+                            <input type="number" class="form-control" name="true_withdrawal" step="0.01" min="0" required 
+                                   value="{{ transaction.true_withdrawal }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ข้อมูลการเงิน -->
+                <div class="col-12 mt-4 border-top pt-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">เติมมือ</label>
+                            <input type="number" class="form-control" name="mobile_deposit" step="0.01" min="0" required 
+                                   value="{{ transaction.mobile_deposit }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">💼 ถอนค่าคอม</label>
+                            <input type="number" class="form-control" name="commission" step="0.01" min="0" required 
+                                   value="{{ transaction.commission }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">🎁 โบนัส</label>
+                            <input type="number" class="form-control" name="bonus" step="0.01" min="0" required 
+                                   value="{{ transaction.bonus }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">🏦 โอนเข้าพัก</label>
+                            <input type="number" class="form-control" name="transfer" step="0.01" min="0" required 
+                                   value="{{ transaction.transfer }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ปุ่มส่งข้อมูล -->
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-warning btn-lg w-100">
+                        💾 บันทึกการแก้ไข
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

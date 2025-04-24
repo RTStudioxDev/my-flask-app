@@ -235,6 +235,63 @@ def manage_agents():
     agents = list(db.agents.find())
     return render_template('agents.html', agents=agents)
 
+@app.route('/edit-transaction/<transaction_id>', methods=['GET', 'POST'])
+def edit_transaction(transaction_id):
+    try:
+        obj_id = ObjectId(transaction_id)
+        transaction = db.transactions.find_one({'_id': obj_id})
+        
+        if not transaction:
+            flash('ไม่พบรายการนี้ในระบบ', 'danger')
+            return redirect(url_for('show_history'))
+
+        if request.method == 'POST':
+            # อัปเดตข้อมูล
+            update_data = {
+                'agent': request.form.get('agent'),
+                'date': datetime.strptime(request.form.get('date'), '%Y-%m-%d'),
+                'new_members': int(request.form.get('new_members', 0)),
+                'first_deposit': float(request.form.get('first_deposit', 0)),
+                'all_deposit': float(request.form.get('all_deposit', 0)),
+                'used': int(request.form.get('used', 0)),
+                'db': float(request.form.get('db', 0)),
+                'kbank_deposit': float(request.form.get('kbank_deposit', 0)),
+                'kbiz_deposit': float(request.form.get('kbiz_deposit', 0)),
+                'scb1_deposit': float(request.form.get('scb1_deposit', 0)),
+                'scb2_deposit': float(request.form.get('scb2_deposit', 0)),
+                'true_deposit': float(request.form.get('true_deposit', 0)),
+                'mobile_deposit': float(request.form.get('mobile_deposit', 0)),
+                'kbank_withdrawal': float(request.form.get('kbank_withdrawal', 0)),
+                'kbiz_withdrawal': float(request.form.get('kbiz_withdrawal', 0)),
+                'scb1_withdrawal': float(request.form.get('scb1_withdrawal', 0)),
+                'scb2_withdrawal': float(request.form.get('scb2_withdrawal', 0)),
+                'true_withdrawal': float(request.form.get('true_withdrawal', 0)),
+                'profit_thb': float(request.form.get('profit_thb', 0)),
+                'profit_usdt': float(request.form.get('profit_usdt', 0)),
+                'transfer': float(request.form.get('transfer', 0)),
+                'bonus': float(request.form.get('bonus', 0)),
+                'commission': float(request.form.get('commission', 0)),
+                'updated_at': datetime.now()
+            }
+
+            db.transactions.update_one(
+                {'_id': obj_id},
+                {'$set': update_data}
+            )
+            
+            flash('อัปเดตข้อมูลสำเร็จ', 'success')
+            return redirect(url_for('show_history'))
+
+        agents = list(db.agents.find())
+        return render_template('edit_transaction.html', 
+                            transaction=transaction, 
+                            agents=agents,
+                            datetime=datetime)
+
+    except Exception as e:
+        flash(f'เกิดข้อผิดพลาด: {str(e)}', 'danger')
+        return redirect(url_for('show_history'))
+
 @app.route('/delete-transaction/<transaction_id>', methods=['POST'])
 def delete_transaction(transaction_id):
     try:
@@ -281,6 +338,13 @@ def export_excel(transaction_id):
         blue_fill = PatternFill(start_color='c9daf8', fill_type='solid')
         border = Border(left=Side(style='thin'), right=Side(style='thin'),
                         top=Side(style='thin'), bottom=Side(style='thin'))
+        
+        # สไตล์ฟอนต์
+        font_header = Font(name='Arial', size=10, bold=False)
+
+        # รูปแบบตัวเลข
+        number_use = '#,##0.00'
+        number_normal = '#,##0'
 
         # ส่วนหัวหลัก
         ws.merge_cells('A1:N1')
@@ -300,6 +364,7 @@ def export_excel(transaction_id):
             cell = ws.cell(row=2, column=col_num, value=header)
             cell.fill = yellow_fill
             cell.border = border
+            cell.font = font_header
 
         # คำนวณค่าต่างๆ
         total_deposit = sum([
@@ -355,23 +420,24 @@ def export_excel(transaction_id):
             # กำหนดสไตล์
             cell.border = border
             cell.alignment = Alignment(horizontal='center')
+
+            ws['A3'].font = Font(name="Arial", size=8)
+
+            # กำหนดรูปแบบตัวเลข
+            if col_num in [2, 3, 4, 5, 6, 7, 11 ,13]:  # B3 - G3
+                cell.number_format = number_use
+            else:
+                cell.font = number_normal
             
-            if col_num == 4:    # คอลัมน์ D
+            # กำหนดสีพื้นหลัง
+            if col_num in [2, 3, 5, 8, 9, 10, 11, 12, 14]:  # C3, D3, E3
+                cell.fill = gray_fill
+            elif col_num == 4:    # คอลัมน์ D
                 cell.fill = red_fill
-                cell.number_format = '#,##0.00'
             elif col_num == 13: # คอลัมน์ M
                 cell.fill = blue_fill
-                cell.number_format = '#,##0.00'
             elif col_num in [6,7]: # คอลัมน์ F และ G
                 cell.fill = green_fill if (value >= 0 if col_num != 5 else cell.value >= 0) else red_fill
-                cell.number_format = '#,##0.00'
-            elif col_num in [2,3,4,5]:
-                cell.number_format = '#,##0.00'
-            elif col_num in [2,3,5]:
-                cell.fill = gray_fill
-            else:
-                cell.fill = gray_fill
-                cell.number_format = '#,##0'
 
         # ปรับความกว้างคอลัมน์
         column_widths = [15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
@@ -382,6 +448,11 @@ def export_excel(transaction_id):
             cell = ws.cell(row=2, column=col)
             cell.font = Font(name="Arial", bold=False, size=8)
             cell.fill = yellow_fill
+            cell.alignment = Alignment(horizontal='center')
+
+        for col in range(2, 15):
+            cell = ws.cell(row=3, column=col)
+            cell.font = Font(name="Arial", bold=False, size=10)
             cell.alignment = Alignment(horizontal='center')
 
         # ส่งไฟล์กลับ
