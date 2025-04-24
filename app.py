@@ -353,6 +353,7 @@ def export_excel(transaction_id):
         ws['A1'].font = Font(name="K2D", bold=True, size=15)
         ws['A1'].fill = header_fill
         ws['A1'].alignment = Alignment(horizontal='center')
+        ws['A1'].alignment = Alignment(Vertical='center')
 
         # ส่วนหัวตาราง
         headers = [
@@ -366,6 +367,7 @@ def export_excel(transaction_id):
             cell.fill = yellow_fill
             cell.border = border
             cell.alignment = Alignment(horizontal='center')
+            cell.alignment = Alignment(Vertical='center')
             cell.font = font_header
 
         # คำนวณยอดรวมจากบัญชีแบบไดนามิก
@@ -408,8 +410,7 @@ def export_excel(transaction_id):
             # กำหนดสไตล์
             cell.border = border
             cell.alignment = Alignment(horizontal='center')
-            
-            ws['A3'].alignment = Alignment(horizontal='center')
+            cell.alignment = Alignment(Vertical='center')
 
             # กำหนดฟอนต์
             if col_num == 1:  # A3
@@ -422,6 +423,16 @@ def export_excel(transaction_id):
                 cell.number_format = '#,##0.00'
             else:
                 cell.number_format = '#,##0'
+
+        #         row = 5 + i
+        #         ws[f'A{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
+        #         ws[f'B{row}'] = amount
+        #         ws[f'B{row}'].number_format = '#,##0.00'
+        #         ws[f'B{row}'].fill = gray_fill
+
+            if col_num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 14]:  # B2 C3, D3, E3
+                cell.alignment = Alignment(Vertical='center')
+                cell.alignment = Alignment(horizontal='center')
 
             
             # กำหนดสีพื้นหลัง
