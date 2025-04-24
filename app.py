@@ -346,6 +346,8 @@ def export_excel(transaction_id):
         font_header = Font(name='Arial', size=10, bold=False)
         font_normal = Font(name='Arial', size=10)
         font_date = Font(name='Arial', size=8)
+        thai_date = f"{transaction['date'].day}/{transaction['date'].month}/{transaction['date'].year + 543}"
+
 
         # ส่วนหัวหลัก
         ws.merge_cells('A1:N1')
@@ -375,7 +377,7 @@ def export_excel(transaction_id):
         shortfall = transaction.get('transfer', 0) - atm_balance
 
         data_row = [
-            transaction['date'].strftime('%d/%m/%Y'),
+            thai_date,
             total_deposit,
             transaction.get('mobile_deposit', 0),
             total_withdrawal,
