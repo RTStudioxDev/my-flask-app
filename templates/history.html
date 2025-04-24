@@ -8,8 +8,124 @@
     <div class="card-body">
         <!-- Filter Form -->
         <form class="mb-4" id="filterForm">
-            <!-- ส่วนฟอร์มกรองข้อมูลเหมือนเดิม -->
-        </form>
+          <div class="row g-3 align-items-end">
+              <div class="col-md-4">
+                  <label class="form-label">ชื่อเว็บ</label>
+                  <select class="form-select" name="agent">
+                      <option value="">ทั้งหมด</option>
+                      {% if unique_agents %}
+                          {% for agent in unique_agents|sort %}
+                          <option value="{{ agent }}" 
+                                  {% if agent|string == selected_agent|string %}selected{% endif %}>
+                              {{ agent }}
+                          </option>
+                          {% endfor %}
+                      {% else %}
+                          <option disabled>ไม่มีข้อมูล Agent ในระบบ</option>
+                      {% endif %}
+                  </select>
+              </div>
+              <div class="col-md-4">
+                  <label class="form-label">เดือน</label>
+                  <select class="form-select" name="month">
+                      <option value="">ทั้งหมด</option>
+                      {% for my in months_years %}
+                      <option value="{{ my._id.month }}" 
+                              {% if my._id.month|string == selected_month %}selected{% endif %}>
+                          {{ my._id.month }}
+                      </option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="col-md-4">
+                  <label class="form-label">ปี</label>
+                  <select class="form-select" name="year">
+                      <option value="">ทั้งหมด</option>
+                      {% for my in months_years %}
+                      <option value="{{ my._id.year }}" 
+                              {% if my._id.year|string == selected_year %}selected{% endif %}>
+                          {{ my._id.year }}
+                      </option>
+                      {% endfor %}
+                  </select>
+              </div>
+          </div>
+      </form>
+
+      <!-- Summary Cards -->
+      <div class="row mb-4">
+        {% set total_deposit_all = transactions.items|map(attribute='deposit_amounts')|map('sum')|sum %}
+        {% set total_withdrawal_all = transactions.items|map(attribute='withdrawal_amounts')|map('sum')|sum %}
+        {% set total_bonus_all = transactions.items|sum(attribute='bonus') %}
+        {% set total_commission_all = transactions.items|sum(attribute='commission') %}
+        {% set bonus_after_tax = total_bonus_all * 0.83 %}  {# หัก 17% จากโบนัส #}
+        {% set total_balance_all = total_deposit_all - (total_withdrawal_all + bonus_after_tax) %}
+          <div class="col-md-4 mb-3">
+              <div class="card border-success h-100">
+                  <div class="card-body">
+                      <h5 class="card-title text-success">💵 ยอดฝากรวม</h5>
+                      <p class="card-text display-6 text-success">
+                        {{ total_deposit_all|number_format(2) }}
+                      </p>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-3">
+              <div class="card border-danger h-100">
+                  <div class="card-body">
+                      <h5 class="card-title text-danger">📤 ยอดถอนรวม</h5>
+                      <p class="card-text display-6 text-danger">
+                        {{ total_withdrawal_all|number_format(2) }}
+                      </p>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-3">
+              <div class="card border-warning h-100">
+                  <div class="card-body">
+                      <h5 class="card-title text-warning">💸 ถอนค่าคอมรวม</h5>
+                      <p class="card-text display-6 text-warning">
+                        {{ total_commission_all|number_format(2) }}
+                      </p>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-3">
+              <div class="card border-info h-100">
+                  <div class="card-body">
+                      <h5 class="card-title text-info">🎁 โบนัสรวม</h5>
+                      <p class="card-text display-6 text-info">
+                        {{ bonus_after_tax|number_format(2) }}
+                      </p>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-3">
+              <div class="card {{ 'border-success' if balance >= 0 else 'border-danger' }} h-100">
+                  <div class="card-body">
+                      <h5 class="card-title {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                        🧮 ยอดดุลรวม
+                      </h5>
+                      <p class="card-text display-6 {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                        {{ total_balance_all|number_format(2) }}
+                      </p>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <!-- Search Form -->
+      <form class="mb-4">
+          <div class="input-group">
+              <input type="text" 
+                     class="form-control" 
+                     placeholder="ค้นหาด้วยชื่อ Agent, วันที่, หรือหมายเหตุ..." 
+                     name="q"
+                     value="{{ request.args.get('q', '') }}">
+              <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search"></i> ค้นหา
+              </button>
+          </div>
+      </form>
 
         <!-- Transactions List -->
         <div class="list-group">
@@ -88,7 +204,7 @@
 "🔺Total USDT ชนะ/แพ้ : " ~ transaction.profit_usdt|number_format(2) ~ " บาท" ~
 display_accounts(deposit_accounts, deposit_amounts, total_deposit, 'deposit')~
 display_accounts(withdrawal_accounts, withdrawal_amounts, total_withdrawal, 'withdrawal')~
-"▫️ฝากมือ: " ~ mobile_deposit|number_format(2) ~ " บาท\n" ~
+"▫️ฝากมือ: " ~ mobile_deposit|number_format(2) ~ " บาท\n\n" ~
 "▫️รายการถอน ที่อนุมัติโดยแอดมิน: " ~ total_withdrawal|number_format(2) ~ " บาท\n\n" ~
 "▫️ถอนค่าคอม: " ~ commission|number_format(2) ~ " บาท\n\n" ~
 "▫️โบนัส: " ~ bonus|number_format(2) ~ " บาท\n" ~
