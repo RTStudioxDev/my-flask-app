@@ -416,7 +416,7 @@ def export_excel(transaction_id):
                 cell.font = font_normal
 
             # กำหนดรูปแบบตัวเลข
-            if col_num in [2, 3, 5, 8, 9 , 10, 11, 14]:  # B2 C3, D3, E3
+            if col_num in [2, 3, 4, 5, 6, 7, 11, 13]:  # B2 C3, D3, E3
                 cell.number_format = '#,##0.00'
             else:
                 cell.number_format = '#,##0'
@@ -427,20 +427,12 @@ def export_excel(transaction_id):
                 cell.fill = gray_fill
             elif col_num == 4:    # คอลัมน์ D
                 cell.fill = red_fill
-                cell.number_format = '#,##0.00'
             elif col_num == 13: # คอลัมน์ M
                 cell.fill = blue_fill
-                cell.number_format = '#,##0.00'
             elif col_num in [6,7]: # คอลัมน์ F และ G
                 cell.fill = green_fill if (value >= 0 if col_num != 5 else cell.value >= 0) else red_fill
-                cell.number_format = '#,##0.00'
-            elif col_num in [2,3,4,5]:
-                cell.number_format = '#,##0.00'
-            elif col_num in [2,3,5]:
-                cell.fill = gray_fill
             else:
                 cell.fill = gray_fill
-                cell.number_format = '#,##0'
 
         # # เพิ่มรายการบัญชีใน Excel
         # if 'deposit_accounts' in transaction:
