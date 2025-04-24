@@ -409,10 +409,11 @@ def export_excel(transaction_id):
             cell.border = border
             cell.alignment = Alignment(horizontal='center')
             
+            ws['A3'].alignment = Alignment(horizontal='center')
+
             # กำหนดฟอนต์
             if col_num == 1:  # A3
                 cell.font = font_date
-                cell.alignment = Alignment(horizontal='center')
             else:
                 cell.font = font_normal
 
