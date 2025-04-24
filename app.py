@@ -415,7 +415,7 @@ def export_excel(transaction_id):
                 cell.font = font_normal
 
             # กำหนดรูปแบบตัวเลข
-            if col_num in [2, 3, 5, 8, 9 , 10, 11, 12, 14]:  # B2 C3, D3, E3
+            if col_num in [2, 3, 5, 8, 9 , 10, 11, 14]:  # B2 C3, D3, E3
                 cell.number_format = '#,##0.00'
             else:
                 cell.number_format = '#,##0'
