@@ -70,66 +70,82 @@
 
                 <!-- ส่วนฝากเงิน -->
                 <div class="col-12 mt-4 border-top pt-3">
-                    <h5 class="text-primary">💸 ฝากเงิน</h5>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">KBANK</label>
-                            <input type="number" class="form-control" name="kbank_deposit" step="0.01" min="0" required 
-                                   value="{{ transaction.kbank_deposit }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">K-BIZ</label>
-                            <input type="number" class="form-control" name="kbiz_deposit" step="0.01" min="0" required 
-                                   value="{{ transaction.kbiz_deposit }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">SCB</label>
-                            <input type="number" class="form-control" name="scb1_deposit" step="0.01" min="0" required 
-                                   value="{{ transaction.scb1_deposit }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">SCB</label>
-                            <input type="number" class="form-control" name="scb2_deposit" step="0.01" min="0" required 
-                                   value="{{ transaction.scb2_deposit }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">TRUE Wallet</label>
-                            <input type="number" class="form-control" name="true_deposit" step="0.01" min="0" required 
-                                   value="{{ transaction.true_deposit }}">
+                    <h5 class="text-primary">💸 บัญชีฝาก </h5>
+                    <div id="deposit-container">
+                        <div class="row g-3 deposit-row mb-2">
+                            <div class="col-md-4">
+                                <select class="form-select bank-select" name="deposit_accounts[]">
+                                    <option value="">เลือกธนาคาร</option>
+                                    <option value="BBL">ธนาคารกรุงเทพ (BBL)</option>
+                                    <option value="KBANK">ธนาคารกสิกรไทย (KBANK)</option>
+                                    <option value="KTB">ธนาคารกรุงไทย (KTB)</option>
+                                    <option value="SCB">ธนาคารไทยพาณิชย์ (SCB)</option>
+                                    <option value="BAY">ธนาคารกรุงศรีอยุธยา (BAY)</option>
+                                    <option value="TMB">ธนาคารทหารไทย (TMB)</option>
+                                    <option value="TBANK">ธนาคารธนชาต (TBANK)</option>
+                                    <option value="KK">ธนาคารเกียรตินาคิน (KK)</option>
+                                    <option value="TISCO">ธนาคารทิสโก้ (TISCO)</option>
+                                    <option value="CIMBT">ธนาคารซีไอเอ็มบีไทย (CIMBT)</option>
+                                    <option value="LH">ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH)</option>
+                                    <option value="UOB">ธนาคารยูโอบี (UOB)</option>
+                                    <option value="BACC">ธนาคารเพื่อการเกษตร (BACC)</option>
+                                    <option value="ICBC">ธนาคารไอซีบีซี (ICBC)</option>
+                                    <option value="GSB">ธนาคารออมสิน (GSB)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" class="form-control" name="deposit_amounts[]" step="0.01" min="0" placeholder="จำนวนเงิน" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger remove-deposit-btn" disabled>
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    <button type="button" id="add-deposit-btn" class="btn btn-sm btn-success mt-2">
+                        <i class="fas fa-plus"></i> เพิ่มบัญชีฝาก
+                    </button>
                 </div>
 
                 <!-- ส่วนถอนเงิน -->
                 <div class="col-12 mt-4 border-top pt-3">
-                    <h5 class="text-danger">📵 ถอนเงิน</h5>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">KBANK</label>
-                            <input type="number" class="form-control" name="kbank_withdrawal" step="0.01" min="0" required 
-                                   value="{{ transaction.kbank_withdrawal }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">K-BIZ</label>
-                            <input type="number" class="form-control" name="kbiz_withdrawal" step="0.01" min="0" required 
-                                   value="{{ transaction.kbiz_withdrawal }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">SCB</label>
-                            <input type="number" class="form-control" name="scb1_withdrawal" step="0.01" min="0" required 
-                                   value="{{ transaction.scb1_withdrawal }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">SCB</label>
-                            <input type="number" class="form-control" name="scb2_withdrawal" step="0.01" min="0" required 
-                                   value="{{ transaction.scb2_withdrawal }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">TRUE Wallet</label>
-                            <input type="number" class="form-control" name="true_withdrawal" step="0.01" min="0" required 
-                                   value="{{ transaction.true_withdrawal }}">
+                    <h5 class="text-danger">📵 ถอนเงิน (แบบไดนามิก)</h5>
+                    <div id="withdrawal-container">
+                        <div class="row g-3 withdrawal-row mb-2">
+                            <div class="col-md-4">
+                                <select class="form-select bank-select" name="withdrawal_accounts[]">
+                                    <option value="">เลือกธนาคาร</option>
+                                    <option value="BBL">ธนาคารกรุงเทพ (BBL)</option>
+                                    <option value="KBANK">ธนาคารกสิกรไทย (KBANK)</option>
+                                    <option value="KTB">ธนาคารกรุงไทย (KTB)</option>
+                                    <option value="SCB">ธนาคารไทยพาณิชย์ (SCB)</option>
+                                    <option value="BAY">ธนาคารกรุงศรีอยุธยา (BAY)</option>
+                                    <option value="TMB">ธนาคารทหารไทย (TMB)</option>
+                                    <option value="TBANK">ธนาคารธนชาต (TBANK)</option>
+                                    <option value="KK">ธนาคารเกียรตินาคิน (KK)</option>
+                                    <option value="TISCO">ธนาคารทิสโก้ (TISCO)</option>
+                                    <option value="CIMBT">ธนาคารซีไอเอ็มบีไทย (CIMBT)</option>
+                                    <option value="LH">ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH)</option>
+                                    <option value="UOB">ธนาคารยูโอบี (UOB)</option>
+                                    <option value="BACC">ธนาคารเพื่อการเกษตร (BACC)</option>
+                                    <option value="ICBC">ธนาคารไอซีบีซี (ICBC)</option>
+                                    <option value="GSB">ธนาคารออมสิน (GSB)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" class="form-control" name="withdrawal_amounts[]" step="0.01" min="0" placeholder="จำนวนเงิน" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger remove-withdrawal-btn" disabled>
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    <button type="button" id="add-withdrawal-btn" class="btn btn-sm btn-success mt-2">
+                        <i class="fas fa-plus"></i> เพิ่มบัญชีถอน
+                    </button>
                 </div>
 
                 <!-- ข้อมูลการเงิน -->
@@ -168,4 +184,41 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+    // เพิ่มบัญชีฝาก
+    $('#add-deposit-btn').click(function() {
+        const newRow = $('.deposit-row:first').clone();
+        newRow.find('input').val('0');
+        newRow.find('.remove-deposit-btn').prop('disabled', false);
+        $('#deposit-container').append(newRow);
+    });
+
+    // เพิ่มบัญชีถอน
+    $('#add-withdrawal-btn').click(function() {
+        const newRow = $('.withdrawal-row:first').clone();
+        newRow.find('input').val('0');
+        newRow.find('.remove-withdrawal-btn').prop('disabled', false);
+        $('#withdrawal-container').append(newRow);
+    });
+
+    // ลบบัญชีฝาก
+    $(document).on('click', '.remove-deposit-btn', function() {
+        if ($('.deposit-row').length > 1) {
+            $(this).closest('.deposit-row').remove();
+        }
+    });
+
+    // ลบบัญชีถอน
+    $(document).on('click', '.remove-withdrawal-btn', function() {
+        if ($('.withdrawal-row').length > 1) {
+            $(this).closest('.withdrawal-row').remove();
+        }
+    });
+});
+</script>
 {% endblock %}

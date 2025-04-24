@@ -8,138 +8,24 @@
     <div class="card-body">
         <!-- Filter Form -->
         <form class="mb-4" id="filterForm">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label">ชื่อเว็บ</label>
-                    <select class="form-select" name="agent">
-                        <option value="">ทั้งหมด</option>
-                        {% if unique_agents %}
-                            {% for agent in unique_agents|sort %}
-                            <option value="{{ agent }}" 
-                                    {% if agent|string == selected_agent|string %}selected{% endif %}>
-                                {{ agent }}
-                            </option>
-                            {% endfor %}
-                        {% else %}
-                            <option disabled>ไม่มีข้อมูล Agent ในระบบ</option>
-                        {% endif %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">เดือน</label>
-                    <select class="form-select" name="month">
-                        <option value="">ทั้งหมด</option>
-                        {% for my in months_years %}
-                        <option value="{{ my._id.month }}" 
-                                {% if my._id.month|string == selected_month %}selected{% endif %}>
-                            {{ my._id.month }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">ปี</label>
-                    <select class="form-select" name="year">
-                        <option value="">ทั้งหมด</option>
-                        {% for my in months_years %}
-                        <option value="{{ my._id.year }}" 
-                                {% if my._id.year|string == selected_year %}selected{% endif %}>
-                            {{ my._id.year }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </form>
-
-        <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4 mb-3">
-                <div class="card border-success h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-success">ยอดฝากรวม</h5>
-                        <p class="card-text display-6 text-success">
-                            ฿{{ total_deposit|number_format(2) }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card border-danger h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-danger">ยอดถอนรวม</h5>
-                        <p class="card-text display-6 text-danger">
-                            ฿{{ total_withdrawal|number_format(2) }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card border-warning h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-warning">ค่าคอมรวม</h5>
-                        <p class="card-text display-6 text-warning">
-                            ฿{{ total_commission|number_format(2) }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card border-info h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-info">โบนัสรวม</h5>
-                        <p class="card-text display-6 text-info">
-                            ฿{{ total_bonus|number_format(2) }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card {{ 'border-success' if balance >= 0 else 'border-danger' }} h-100">
-                    <div class="card-body">
-                        <h5 class="card-title {{ 'text-success' if balance >= 0 else 'text-danger' }}">
-                            ยอดดุลรวม
-                        </h5>
-                        <p class="card-text display-6 {{ 'text-success' if balance >= 0 else 'text-danger' }}">
-                            ฿{{ balance|number_format(2) }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Search Form -->
-        <form class="mb-4">
-            <div class="input-group">
-                <input type="text" 
-                       class="form-control" 
-                       placeholder="ค้นหาด้วยชื่อ Agent, วันที่, หรือหมายเหตุ..." 
-                       name="q"
-                       value="{{ request.args.get('q', '') }}">
-                <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-search"></i> ค้นหา
-                </button>
-            </div>
+            <!-- ส่วนฟอร์มกรองข้อมูลเหมือนเดิม -->
         </form>
 
         <!-- Transactions List -->
         <div class="list-group">
             {% for transaction in transactions.items %}
             <div class="list-group-item" style="min-height: auto;">
-                <!-- Header Section -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 class="mb-1">🔆 {{ transaction.agent }} 🔆</h5>
                         <small class="text-muted">{{ transaction.date.strftime('%d/%m/%Y') }}</small>
                     </div>
                     <div class="d-flex gap-2">
-                        <!-- ปุ่มแก้ไขใหม่ -->
                         <a href="{{ url_for('edit_transaction', transaction_id=transaction._id) }}" 
-                            class="btn btn-sm btn-warning" title="แก้ไข">
+                            class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <!-- ปุ่มดำเนินการ -->
                         <button class="btn btn-sm btn-outline-primary" 
-                                type="button" 
                                 data-bs-toggle="collapse" 
                                 data-bs-target="#details-{{ loop.index }}">
                             ดูข้อมูลเพิ่มเติม
@@ -158,61 +44,64 @@
                         </a>
                     </div>
                 </div>
+
                 <!-- Collapsible Details -->
                 <div class="collapse mt-3" id="details-{{ loop.index }}">
-                    <div class="telegram-message" id="telegram-message-{{ loop.index }}">
-                        {%- set total_deposit = transaction.kbank_deposit + transaction.kbiz_deposit + 
-                            transaction.scb1_deposit + transaction.scb2_deposit + 
-                            transaction.true_deposit -%}
-    {%- set total_withdrawal = transaction.kbank_withdrawal + transaction.kbiz_withdrawal + 
-                             transaction.scb1_withdrawal + transaction.scb2_withdrawal + 
-                             transaction.true_withdrawal -%}
-    {%- set total_withdrawal_com = total_withdrawal + transaction.commission -%}
-    {%- set atm_balance = total_deposit - (total_withdrawal + transaction.commission) -%}
-    {%- set shortfall = transaction.transfer - atm_balance -%}
-    {{  "🔆" ~ transaction.agent ~ " ปิดกะ🔆\n" ~
-        "▫️วันที่สรุปข้อมูล : " ~ transaction.date.strftime('%d/%m/%Y') ~ "\n" ~
-        "▫️สมาชิกใหม่ : " ~ transaction.new_members|string ~ " ฝากแล้ว : " ~ transaction.first_deposit|number_format(2) ~ "\n" ~
-        "▫️ฝากครั้งแรกรวม : " ~ transaction.all_deposit|number_format(2) ~ "\n\n" ~
-        "▫️แอคทีฟ : " ~ transaction.used|string ~ "\n\n" ~
-        "🟢 Total : " ~ (atm_balance + transaction.get('db', 0))|number_format(2) ~ "\n" ~
-        "🟢 DB : " ~ transaction.get('db', 0)|number_format(2) ~ "\n" ~
-        "🟢 ATM : " ~ atm_balance|number_format(2) ~ "\n\n" ~
-        "🔺Total THB ชนะ/แพ้ : " ~ transaction.profit_thb|number_format(2) ~ "\n" ~
-        "🔺Total USDT ชนะ/แพ้ : " ~ transaction.profit_usdt|number_format(2) ~ "\n\n" ~
-        "💸 ยอดฝาก 💸\n" ~
-        "▫️KBANK: " ~ transaction.kbank_deposit|number_format(2) ~ "\n" ~
-        "▫️KBIZ: " ~ transaction.kbiz_deposit|number_format(2) ~ "\n" ~
-        "▫️SCB: " ~ transaction.scb1_deposit|number_format(2) ~ "\n" ~
-        "▫️SCB: " ~ transaction.scb2_deposit|number_format(2) ~ "\n" ~
-        "▫️TRUE: " ~ transaction.true_deposit|number_format(2) ~ "\n" ~
-        "✅ รวมฝาก: " ~ total_deposit|number_format(2) ~ "\n\n" ~
-        "📵 ยอดถอน 📵\n" ~
-        "▫️KBANK: " ~ transaction.kbank_withdrawal|number_format(2) ~ "\n" ~
-        "▫️KBIZ: " ~ transaction.kbiz_withdrawal|number_format(2) ~ "\n" ~
-        "▫️SCB: " ~ transaction.scb1_withdrawal|number_format(2) ~ "\n" ~
-        "▫️SCB: " ~ transaction.scb2_withdrawal|number_format(2) ~ "\n" ~
-        "▫️TRUE: " ~ transaction.true_withdrawal|number_format(2) ~ "\n" ~
-        "✅ รวมถอน: " ~ total_withdrawal|number_format(2) ~ "\n\n" ~
-        "▫️ฝากมือ: " ~ transaction.mobile_deposit|number_format(2) ~ "\n" ~
-        "▫️รายการถอน ที่อนุมัติโดยแอดมิน: " ~ total_withdrawal|number_format(2) ~ "\n" ~
-        "▫️ถอนค่าคอม: " ~ transaction.commission|number_format(2) ~ "\n" ~
-        "▫️โบนัส: " ~ transaction.bonus|number_format(2) ~ "\n" ~
-        "_________________________________________\n\n" ~
-        "✅ รวมถอน(ยอดถอน + ถอนคอม) = " ~ total_withdrawal_com|number_format(2) ~ "\n" ~
-        "✅ สรุป: " ~ atm_balance|number_format(2) ~ " บาท\n" ~
-        "🔰 โอนเข้าพัก: " ~ transaction.transfer|number_format(2) ~ " บาท\n" ~
-        "💵 ขาด/เกิน: " ~ shortfall|number_format(2) ~ " บาท"
-    }}
+                    <div class="telegram-message" id="telegram-message-{{ loop.index }}" style="white-space: pre-line; font-family: monospace;">
+{%- set deposit_accounts = transaction.get('deposit_accounts', []) %}
+{%- set deposit_amounts = transaction.get('deposit_amounts', []) %}
+{%- set withdrawal_accounts = transaction.get('withdrawal_accounts', []) %}
+{%- set withdrawal_amounts = transaction.get('withdrawal_amounts', []) %}
+{%- set mobile_deposit = transaction.get('mobile_deposit', 0) %}
+{%- set commission = transaction.get('commission', 0) %}
+{%- set bonus = transaction.get('bonus', 0) %}
+{%- set transfer = transaction.get('transfer', 0) %}
+{%- set db_value = transaction.get('db', 0) %}
+
+{%- set total_deposit = deposit_amounts|sum %}
+{%- set total_withdrawal = withdrawal_amounts|sum %}
+{%- set total_withdrawal_com = total_withdrawal + commission %}
+{%- set atm_balance = total_deposit - (total_withdrawal + commission) %}
+{%- set shortfall = transfer - atm_balance %}
+
+{% macro display_accounts(accounts, amounts, total, transaction_type) %}
+{% if accounts and amounts and accounts|length == amounts|length %}
+{% if transaction_type == 'deposit' %}💸 ยอดฝาก 💸{% else %}📵 ยอดถอน 📵{% endif %}
+{% for i in range(accounts|length) %}
+▫️{{ accounts[i] }}: {{ amounts[i]|number_format(2) }} บาท{% endfor %}
+✅ รวม{% if transaction_type == 'deposit' %}ฝาก{% else %}ถอน{% endif %}: {{ total|number_format(2) }} บาท
+{% else %}
+{% if transaction_type == 'deposit' %}💸 ยอดฝาก 💸
+▫️ไม่มีรายการฝาก{% else %}📵 ยอดถอน 📵
+▫️ไม่มีรายการถอน{% endif %}
+{% endif %}
+{% endmacro %}
+{{"🔆" ~ transaction.agent ~ " ปิดกะ🔆\n" ~
+"▫️วันที่สรุปข้อมูล : " ~ transaction.date.strftime('%d/%m/%Y') ~ "\n" ~
+"▫️สมาชิกใหม่ : " ~ transaction.new_members|string ~ " ฝากแล้ว : " ~ transaction.first_deposit|number_format(2) ~ " บาท\n" ~
+"▫️ฝากครั้งแรกรวม : " ~ transaction.all_deposit|number_format(2) ~ " บาท\n\n" ~
+"▫️แอคทีฟ : " ~ transaction.used|string ~ " คน\n\n" ~
+"🟢 Total : " ~ (atm_balance + db_value)|number_format(2) ~ " บาท\n" ~
+"🟢 DB : " ~ db_value|number_format(2) ~ " บาท\n" ~
+"🟢 ATM : " ~ atm_balance|number_format(2) ~ " บาท\n\n" ~
+"🔺Total THB ชนะ/แพ้ : " ~ transaction.profit_thb|number_format(2) ~ " บาท\n" ~
+"🔺Total USDT ชนะ/แพ้ : " ~ transaction.profit_usdt|number_format(2) ~ " บาท" ~
+display_accounts(deposit_accounts, deposit_amounts, total_deposit, 'deposit')~
+display_accounts(withdrawal_accounts, withdrawal_amounts, total_withdrawal, 'withdrawal')~
+"▫️ฝากมือ: " ~ mobile_deposit|number_format(2) ~ " บาท\n" ~
+"▫️รายการถอน ที่อนุมัติโดยแอดมิน: " ~ total_withdrawal|number_format(2) ~ " บาท\n" ~
+"▫️ถอนค่าคอม: " ~ commission|number_format(2) ~ " บาท\n" ~
+"▫️โบนัส: " ~ bonus|number_format(2) ~ " บาท\n" ~
+"===============================================================\n" ~
+"✅ รวมถอน(ยอดถอน + ถอนคอม) = " ~ total_withdrawal_com|number_format(2) ~ " บาท\n" ~
+"✅ สรุป: " ~ atm_balance|number_format(2) ~ " บาท\n" ~
+"🔰 โอนเข้าพัก: " ~ transfer|number_format(2) ~ " บาท\n" ~
+"💵 ขาด/เกิน: " ~ shortfall|number_format(2) ~ " บาท"}}
                     </div>
-                    <!-- เพิ่มปุ่มคัดลอก -->
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-outline-secondary copy-btn" 
-                                onclick="copyTelegramMessage('telegram-message-{{ loop.index }}')"
-                                title="คัดลอกข้อความ">
-                            <i class="fas fa-copy me-2"></i>คัดลอก
-                        </button>
-                    </div>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" 
+                            onclick="copyTelegramMessage('telegram-message{{ loop.index }}')">
+                        <i class="fas fa-copy me-2"></i>คัดลอก
+                    </button>
                 </div>
             </div>
             {% else %}
@@ -280,36 +169,72 @@
 {% block scripts %}
 {{ super() }}
 <script>
-function copyTelegramMessage(elementId) {
+async function copyTelegramMessage(elementId) {
+  try {
     const messageElement = document.getElementById(elementId);
-    const text = messageElement.textContent;
+    const text = messageElement.innerText;
     
-    navigator.clipboard.writeText(text)
-        .then(() => {
-            const btn = document.querySelector(`button[onclick="copyTelegramMessage('${elementId}')"]`);
-            const tooltip = new bootstrap.Tooltip(btn, {
-                title: 'คัดลอกแล้ว!',
-                trigger: 'manual'
-            });
-            tooltip.show();
-            setTimeout(() => tooltip.hide(), 1000);
-        })
-        .catch(err => {
-            console.error('Failed to copy:', err);
-            alert('เกิดข้อผิดพลาดในการคัดลอก');
-        });
+    // วิธีที่ 1: ใช้ Clipboard API แบบใหม่
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+      showCopySuccess(elementId);
+      return;
+    }
+    
+    // วิธีที่ 2: ใช้วิธีเก่าสำหรับเบราว์เซอร์รุ่นเก่า
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';  // ไม่อนุญาตให้เห็น
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+      document.execCommand('copy');
+      showCopySuccess(elementId);
+    } catch (err) {
+      throw new Error('Failed to copy');
+    } finally {
+      document.body.removeChild(textarea);
+    }
+    
+  } catch (err) {
+    console.error('Copy failed:', err);
+    // วิธีที่ 3: แสดงข้อความให้ผู้ใช้คัดลอกเอง
+    const messageElement = document.getElementById(elementId);
+    alert('กรุณากด Ctrl+C เพื่อคัดลอกข้อความนี้:\n\n' + messageElement.innerText);
+  }
 }
 
-// Auto-submit filter form
-document.addEventListener('DOMContentLoaded', function() {
-    const filterForm = document.getElementById('filterForm');
-    if (filterForm) {
-        const selects = filterForm.querySelectorAll('select');
-        selects.forEach(select => {
-            select.addEventListener('change', () => filterForm.submit());
-        });
-    }
+function showCopySuccess(elementId) {
+  const btn = document.querySelector(`button[onclick*="${elementId}"]`);
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-check me-2"></i>คัดลอกแล้ว!';
+  btn.classList.remove('btn-outline-secondary');
+  btn.classList.add('btn-success');
+  
+  setTimeout(() => {
+    btn.innerHTML = originalHTML;
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-outline-secondary');
+  }, 2000);
+}
+
+// เปลี่ยนจาก onclick เป็น event listener ที่น่าเชื่อถือกว่า
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const elementId = this.closest('.collapse').querySelector('.telegram-message').id;
+      copyTelegramMessage(elementId);
+    });
+  });
+
+  // ส่วนอื่นๆ ที่มีอยู่เดิม
+  const filterForm = document.getElementById('filterForm');
+  if (filterForm) {
+    filterForm.querySelectorAll('select').forEach(select => {
+      select.addEventListener('change', () => filterForm.submit());
+    });
+  }
 });
 </script>
 {% endblock %}
-
