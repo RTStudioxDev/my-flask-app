@@ -365,6 +365,7 @@ def export_excel(transaction_id):
             cell = ws.cell(row=2, column=col_num, value=header)
             cell.fill = yellow_fill
             cell.border = border
+            cell.alignment = Alignment(horizontal='center')
             cell.font = font_header
 
         # คำนวณยอดรวมจากบัญชีแบบไดนามิก
