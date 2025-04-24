@@ -417,8 +417,6 @@ def export_excel(transaction_id):
             # กำหนดรูปแบบตัวเลข
             if col_num in [2, 3, 5, 8, 9 , 10, 11, 12, 14]:  # B2 C3, D3, E3
                 cell.number_format = '#,##0.00'
-            elif col_num == 1:  # A3
-                cell.data_type = 'd"/"m"/"yyyy'
             else:
                 cell.number_format = '#,##0'
 
