@@ -89,13 +89,13 @@
 display_accounts(deposit_accounts, deposit_amounts, total_deposit, 'deposit')~
 display_accounts(withdrawal_accounts, withdrawal_amounts, total_withdrawal, 'withdrawal')~
 "▫️ฝากมือ: " ~ mobile_deposit|number_format(2) ~ " บาท\n" ~
-"▫️รายการถอน ที่อนุมัติโดยแอดมิน: " ~ total_withdrawal|number_format(2) ~ " บาท\n" ~
-"▫️ถอนค่าคอม: " ~ commission|number_format(2) ~ " บาท\n" ~
+"▫️รายการถอน ที่อนุมัติโดยแอดมิน: " ~ total_withdrawal|number_format(2) ~ " บาท\n\n" ~
+"▫️ถอนค่าคอม: " ~ commission|number_format(2) ~ " บาท\n\n" ~
 "▫️โบนัส: " ~ bonus|number_format(2) ~ " บาท\n" ~
-"==========================================================\n" ~
-"✅ รวมถอน(ยอดถอน + ถอนคอม) = " ~ total_withdrawal_com|number_format(2) ~ " บาท\n" ~
-"✅ สรุป: " ~ atm_balance|number_format(2) ~ " บาท\n" ~
-"🔰 โอนเข้าพัก: " ~ transfer|number_format(2) ~ " บาท\n" ~
+"_________________________________________\n\n" ~
+"✅ รวมถอน(ยอดถอน + ถอนคอม) = " ~ total_withdrawal_com|number_format(2) ~ " บาท\n\n" ~
+"✅ สรุป: " ~ atm_balance|number_format(2) ~ " บาท\n\n" ~
+"🔰 โอนเข้าพัก: " ~ transfer|number_format(2) ~ " บาท\n\n" ~
 "💵 ขาด/เกิน: " ~ shortfall|number_format(2) ~ " บาท"}}
                     </div>
                     <button class="btn btn-sm btn-outline-secondary copy-btn" 
