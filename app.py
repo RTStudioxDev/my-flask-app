@@ -423,11 +423,6 @@ def export_excel(transaction_id):
             else:
                 cell.number_format = '#,##0'
 
-        #         row = 5 + i
-        #         ws[f'A{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
-        #         ws[f'B{row}'] = amount
-        #         ws[f'B{row}'].number_format = '#,##0.00'
-        #         ws[f'B{row}'].fill = gray_fill
 
             if col_num in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 14]:  # B2 C3, D3, E3
                 cell.alignment = Alignment(horizontal='center', vertical='center')
@@ -444,23 +439,6 @@ def export_excel(transaction_id):
                 cell.fill = green_fill if (value >= 0 if col_num != 5 else cell.value >= 0) else red_fill
             else:
                 cell.fill = gray_fill
-
-        # # เพิ่มรายการบัญชีใน Excel
-        # if 'deposit_accounts' in transaction:
-        #     for i, (account, amount) in enumerate(zip(transaction['deposit_accounts'], transaction['deposit_amounts'])):
-        #         row = 5 + i
-        #         ws[f'A{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
-        #         ws[f'B{row}'] = amount
-        #         ws[f'B{row}'].number_format = '#,##0.00'
-        #         ws[f'B{row}'].fill = gray_fill
-
-        # if 'withdrawal_accounts' in transaction:
-        #     for i, (account, amount) in enumerate(zip(transaction['withdrawal_accounts'], transaction['withdrawal_amounts'])):
-        #         row = 5 + i
-        #         ws[f'D{row}'] = f"{BANK_ACCOUNTS.get(account, account)} ({account})"
-        #         ws[f'E{row}'] = amount
-        #         ws[f'E{row}'].number_format = '#,##0.00'
-        #         ws[f'E{row}'].fill = gray_fill
 
         # ปรับความกว้างคอลัมน์
         column_widths = [15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
