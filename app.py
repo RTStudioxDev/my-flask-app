@@ -20,9 +20,9 @@ def setup_jinja_filters(app):
         return zip(a, b)
         
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')
+app.secret_key = os.getenv('SECRET_KEY', 'f5b0c2b44c0da7ddca709558e7fa4e9f9fb59d65144d7683')
 
-client = MongoClient(os.getenv('MONGODB_URI'))
+client = MongoClient(os.getenv('MONGODB_URI', 'mongodb+srv://Admin:060843Za@summary.ezehedg.mongodb.net/'))
 db = client['finance_web_app']
 
 app.jinja_env.globals.update(zip=zip)
