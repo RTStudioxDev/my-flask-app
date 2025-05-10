@@ -42,7 +42,8 @@
             <tr>
                 <th>ชื่อผู้ใช้</th>
                 <th>ยศ</th>
-                <th>การกระทำ</th>
+                <th>Agent ที่ได้รับอนุญาต</th>
+                <th>แก้ไขผู้ใช้งาน</th>
             </tr>
         </thead>
         <tbody>
@@ -50,6 +51,13 @@
             <tr>
                 <td>{{ user.username }}</td>
                 <td>{{ user.role }}</td>
+                <td>
+                    {% if user.allowed_agents %}
+                        {{ user.allowed_agents | join(', ') }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
                 <td>
                     <!-- ฟอร์มสำหรับการแก้ไขข้อมูลผู้ใช้ -->
                     <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user._id }}">แก้ไข</button>
@@ -82,6 +90,24 @@
                                         <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>แอดมิน</option>
                                         <option value="user" {% if user.role == 'user' %}selected{% endif %}>ผู้ใช้</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <div class="ps-3">  <!-- เพิ่ม padding ซ้าย -->
+                                    <label>เลือก Agent ที่อนุญาตให้ใช้งาน:</label><br>
+                                        {% for agent in all_agents %}
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="allowed_agents"
+                                                value="{{ agent.name }}"
+                                                id="add_agent_{{ agent.name }}">
+                                            <label class="form-check-label" for="add_agent_{{ agent.name }}">
+                                                {{ agent.name }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
                             <div class="modal-footer">

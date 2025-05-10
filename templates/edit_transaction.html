@@ -11,14 +11,16 @@
                 <!-- ส่วนเลือก Agent และวันที่ -->
                 <div class="col-md-6">
                     <label class="form-label">🔖 เลือก Agent</label>
-                    <select class="form-select" name="agent" required>
-                        <option value="">-- กรุณาเลือก Agent --</option>
-                        {% for agent in agents %}
-                        <option value="{{ agent.name }}" 
-                                {% if agent.name == transaction.agent %}selected{% endif %}>
-                            {{ agent.name }}
-                        </option>
-                        {% endfor %}
+                    <select name="agent" class="form-select" required>
+                        {% if agents %}
+                            {% for agent in agents %}
+                                <option value="{{ agent.name }}" {% if agent.name == selected_agent %}selected{% endif %}>
+                                    {{ agent.name }}
+                                </option>
+                            {% endfor %}
+                        {% else %}
+                            <option disabled selected>ไม่มี Agent ที่สามารถเลือกได้</option>
+                        {% endif %}
                     </select>
                 </div>
                 

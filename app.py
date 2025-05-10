@@ -129,9 +129,9 @@ def index():
     user = db.users.find_one({'_id': ObjectId(session['user_id'])})
 
     if user:
-        # ดึงข้อมูล agent ทั้งหมด
-        agents = list(db.agents.find())
-        return render_template('index.html', agents=agents, user=user)  # ส่งข้อมูลผู้ใช้และ agent ไปยังเทมเพลต
+        allowed_agents = g.user.get("allowed_agents", [])
+        agents = list(db.agents.find({"name": {"$in": allowed_agents}})) if allowed_agents else []
+        return render_template('index.html', agents=agents, user=g.user)
     else:
         # ถ้าไม่พบผู้ใช้ ให้ไปที่หน้า login
         return redirect(url_for('login'))
@@ -167,58 +167,57 @@ def change_password():
 @login_required
 @role_required('admin')  # ตรวจสอบว่าผู้ใช้เป็น admin หรือไม่
 def admin_panel():
-    # ดึงข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูล
-    users = db.users.find()
+    users = list(db.users.find())
+    all_agents = list(db.agents.find())  # ใช้ใน select dropdown
 
     if request.method == 'POST':
         action = request.form.get('action')
 
-        # ฟังก์ชันในการเพิ่มผู้ใช้ใหม่
         if action == 'add':
             username = request.form['username']
             password = request.form['password']
             role = request.form['role']
+            allowed_agents = request.form.getlist('allowed_agents')  # เพิ่มตรงนี้
 
             if username and password and role:
-                # สร้างรหัสผ่านที่เข้ารหัส
                 hashed_password = generate_password_hash(password)
-                
-                # เพิ่มผู้ใช้ใหม่ในฐานข้อมูล
                 db.users.insert_one({
                     'username': username,
                     'password': hashed_password,
-                    'role': role,  # กำหนดบทบาท (role)
+                    'role': role,
+                    'allowed_agents': allowed_agents,
                     'created_at': datetime.now()
                 })
                 flash('เพิ่มผู้ใช้ใหม่สำเร็จ', 'success')
             else:
                 flash('กรุณากรอกข้อมูลให้ครบถ้วน', 'danger')
 
-        # ฟังก์ชันในการแก้ไขข้อมูลผู้ใช้
         if action == 'edit':
             user_id = request.form['user_id']
             username = request.form['username']
             role = request.form['role']
             new_password = request.form.get('new_password')
+            allowed_agents = request.form.getlist('allowed_agents')
 
-            # ตรวจสอบว่ามีการกรอกรหัสผ่านใหม่หรือไม่
-            update_data = {'username': username, 'role': role}
+            update_data = {
+                'username': username,
+                'role': role,
+                'allowed_agents': allowed_agents
+            }
 
             if new_password:
-                # ถ้ามีการกรอกรหัสผ่านใหม่ จะทำการเข้ารหัสและอัปเดต
                 hashed_password = generate_password_hash(new_password)
                 update_data['password'] = hashed_password
 
-            # อัปเดตข้อมูลผู้ใช้
             db.users.update_one(
                 {'_id': ObjectId(user_id)},
                 {'$set': update_data}
             )
             flash('แก้ไขข้อมูลผู้ใช้สำเร็จ', 'success')
-        
+
         return redirect(url_for('admin_panel'))
 
-    return render_template('admin_panel.html', users=users)
+    return render_template('admin_panel.html', users=users, all_agents=all_agents)
 
 @app.route('/submit', methods=['POST'])
 @login_required
@@ -255,6 +254,10 @@ def submit_transaction():
 
         if not transaction_data['agent']:
             flash('กรุณาเลือก Agent', 'danger')
+            return redirect(url_for('index'))
+
+        if transaction_data['agent'] not in g.user.get('allowed_agents', []):
+            flash("คุณไม่มีสิทธิ์เลือก Agent นี้", "danger")
             return redirect(url_for('index'))
 
         db.transactions.insert_one(transaction_data)
@@ -373,9 +376,8 @@ def show_history():
 @app.before_request
 def before_request():
     if 'user_id' in session:
-        # ดึงข้อมูลผู้ใช้จากฐานข้อมูล
         user = db.users.find_one({'_id': ObjectId(session['user_id'])})
-        g.user = user  # เก็บข้อมูลผู้ใช้ใน g เพื่อให้เข้าถึงได้ในทุกๆ request
+        g.user = user
     else:
         g.user = None
 
@@ -459,8 +461,13 @@ def edit_transaction(transaction_id):
                 'bonus': float(request.form.get('bonus', 0)),
                 'commission': float(request.form.get('commission', 0)),
                 'admin_approved': int(request.form.get('admin_approved', 0)),
-                'updated_at': datetime.now()
+                'updated_at': datetime.now(),
+                'updated_by': session.get('user_id')
             }
+
+            if update_data['agent'] not in g.user.get('allowed_agents', []):
+                flash("คุณไม่มีสิทธิ์แก้ไข Agent นี้", "danger")
+                return redirect(url_for('show_history'))
 
             db.transactions.update_one(
                 {'_id': obj_id},
@@ -470,7 +477,8 @@ def edit_transaction(transaction_id):
             flash('อัปเดตข้อมูลสำเร็จ', 'success')
             return redirect(url_for('show_history'))
 
-        agents = list(db.agents.find())
+        allowed_agents = g.user.get("allowed_agents", [])
+        agents = list(db.agents.find({"name": {"$in": allowed_agents}})) if allowed_agents else []
         return render_template('edit_transaction.html', 
                             transaction=transaction, 
                             agents=agents,
