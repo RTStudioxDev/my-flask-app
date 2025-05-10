@@ -1,0 +1,80 @@
+<!-- เพิ่มส่วนจัดการบัญชีธนาคาร -->
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5><i class="fas fa-plus-circle me-2"></i>เพิ่มบัญชีธนาคาร</h5>
+    </div>
+    <div class="card-body">
+        <form id="bankAccountForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">รหัสธนาคาร</label>
+                    <select class="form-select" name="bank_code" required>
+                        <option value="">-- เลือกรหัส --</option>
+                        {% for code, name in BANK_ACCOUNTS.items() %}
+                        <option value="{{ code }}">{{ code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ชื่อบัญชี</label>
+                    <input type="text" class="form-control" name="account_name" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">เลขบัญชี</label>
+                    <input type="text" class="form-control" name="account_number" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ประเภทบัญชี</label>
+                    <select class="form-select" name="account_type" required>
+                        <option value="deposit">รับฝากเงิน</option>
+                        <option value="withdrawal">จ่ายเงินถอน</option>
+                        <option value="both">ใช้ทั้งสองอย่าง</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> เพิ่มบัญชี
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+// ในส่วน scripts ของ bank_settings.html
+<script>
+$(document).ready(function() {
+    // ส่งฟอร์มเพิ่มบัญชี
+    $('#bankAccountForm').submit(function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            bank_code: $('select[name="bank_code"]').val(),
+            account_name: $('input[name="account_name"]').val(),
+            account_number: $('input[name="account_number"]').val(),
+            account_type: $('select[name="account_type"]').val(),
+            is_active: true
+        };
+
+        fetch('/api/bank_accounts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('เพิ่มบัญชีเรียบร้อยแล้ว');
+                location.reload();
+            } else {
+                alert('เกิดข้อผิดพลาด: ' + (data.message || 'ไม่สามารถเพิ่มบัญชีได้'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        });
+    });
+});
+</script>

@@ -7,111 +7,115 @@
     </div>
     <div class="card-body">
         <!-- Filter Form -->
+        {% if g.user.role == 'admin' %}
         <form class="mb-4" id="filterForm">
-          <div class="row g-3 align-items-end">
-              <div class="col-md-4">
-                  <label class="form-label">ชื่อเว็บ</label>
-                  <select class="form-select" name="agent">
-                      <option value="">ทั้งหมด</option>
-                      {% if unique_agents %}
-                          {% for agent in unique_agents|sort %}
-                          <option value="{{ agent }}" 
-                                  {% if agent|string == selected_agent|string %}selected{% endif %}>
-                              {{ agent }}
-                          </option>
-                          {% endfor %}
-                      {% else %}
-                          <option disabled>ไม่มีข้อมูล Agent ในระบบ</option>
-                      {% endif %}
-                  </select>
-              </div>
-              <div class="col-md-4">
-                  <label class="form-label">เดือน</label>
-                  <select class="form-select" name="month">
-                      <option value="">ทั้งหมด</option>
-                      {% for my in months_years %}
-                      <option value="{{ my._id.month }}" 
-                              {% if my._id.month|string == selected_month %}selected{% endif %}>
-                          {{ my._id.month }}
-                      </option>
-                      {% endfor %}
-                  </select>
-              </div>
-              <div class="col-md-4">
-                  <label class="form-label">ปี</label>
-                  <select class="form-select" name="year">
-                      <option value="">ทั้งหมด</option>
-                      {% for my in months_years %}
-                      <option value="{{ my._id.year }}" 
-                              {% if my._id.year|string == selected_year %}selected{% endif %}>
-                          {{ my._id.year }}
-                      </option>
-                      {% endfor %}
-                  </select>
-              </div>
-          </div>
-      </form>
-      <!-- Summary Cards -->
-      <div class="row mb-4">
-        {% set total_deposit_all = transactions.items|map(attribute='deposit_amounts')|map('sum')|sum %}
-        {% set total_withdrawal_all = transactions.items|map(attribute='withdrawal_amounts')|map('sum')|sum %}
-        {% set total_bonus_all = transactions.items|sum(attribute='bonus') %}
-        {% set total_commission_all = transactions.items|sum(attribute='commission') %}
-        {% set bonus_after_tax = total_bonus_all * 0.83 %}  {# หัก 17% จากโบนัส #}
-        {% set total_balance_all = total_deposit_all - (total_withdrawal_all + bonus_after_tax) %}
-          <div class="col-md-4 mb-3">
-              <div class="card border-success h-100">
-                  <div class="card-body">
-                      <h5 class="card-title text-success">💵 ยอดฝากรวม</h5>
-                      <p class="card-text display-6 text-success">
-                        {{ total_deposit_all|number_format(2) }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="col-md-4 mb-3">
-              <div class="card border-danger h-100">
-                  <div class="card-body">
-                      <h5 class="card-title text-danger">📤 ยอดถอนรวม</h5>
-                      <p class="card-text display-6 text-danger">
-                        {{ total_withdrawal_all|number_format(2) }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="col-md-4 mb-3">
-              <div class="card border-warning h-100">
-                  <div class="card-body">
-                      <h5 class="card-title text-warning">💸 ถอนค่าคอมรวม</h5>
-                      <p class="card-text display-6 text-warning">
-                        {{ total_commission_all|number_format(2) }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="col-md-4 mb-3">
-              <div class="card border-info h-100">
-                  <div class="card-body">
-                      <h5 class="card-title text-info">🎁 โบนัสรวม</h5>
-                      <p class="card-text display-6 text-info">
-                        {{ bonus_after_tax|number_format(2) }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="col-md-4 mb-3">
-              <div class="card {{ 'border-success' if balance >= 0 else 'border-danger' }} h-100">
-                  <div class="card-body">
-                      <h5 class="card-title {{ 'text-success' if balance >= 0 else 'text-danger' }}">
-                        🧮 ยอดดุลรวม
-                      </h5>
-                      <p class="card-text display-6 {{ 'text-success' if balance >= 0 else 'text-danger' }}">
-                        {{ total_balance_all|number_format(2) }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-      </div>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">ชื่อเว็บ</label>
+                <select class="form-select" name="agent">
+                    <option value="">ทั้งหมด</option>
+                    {% if unique_agents %}
+                        {% for agent in unique_agents|sort %}
+                        <option value="{{ agent }}" 
+                                {% if agent|string == selected_agent|string %}selected{% endif %}>
+                            {{ agent }}
+                        </option>
+                        {% endfor %}
+                    {% else %}
+                        <option disabled>ไม่มีข้อมูล Agent ในระบบ</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">เดือน</label>
+                <select class="form-select" name="month">
+                    <option value="">ทั้งหมด</option>
+                    {% for my in months_years %}
+                    <option value="{{ my._id.month }}" 
+                            {% if my._id.month|string == selected_month %}selected{% endif %}>
+                        {{ my._id.month }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">ปี</label>
+                <select class="form-select" name="year">
+                    <option value="">ทั้งหมด</option>
+                    {% for my in months_years %}
+                    <option value="{{ my._id.year }}" 
+                            {% if my._id.year|string == selected_year %}selected{% endif %}>
+                        {{ my._id.year }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        </form>
+        <!-- End Filter Form -->
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            {% set total_deposit_all = transactions.items|map(attribute='deposit_amounts')|map('sum')|sum %}
+            {% set total_withdrawal_all = transactions.items|map(attribute='withdrawal_amounts')|map('sum')|sum %}
+            {% set total_bonus_all = transactions.items|sum(attribute='bonus') %}
+            {% set total_commission_all = transactions.items|sum(attribute='commission') %}
+            {% set bonus_after_tax = total_bonus_all * 0.83 %}  {# หัก 17% จากโบนัส #}
+            {% set total_balance_all = total_deposit_all - (total_withdrawal_all + bonus_after_tax) %}
+            <div class="col-md-4 mb-3">
+                <div class="card border-success h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">💵 ยอดฝากรวม</h5>
+                        <p class="card-text display-6 text-success">
+                            {{ total_deposit_all|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">📤 ยอดถอนรวม</h5>
+                        <p class="card-text display-6 text-danger">
+                            {{ total_withdrawal_all|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-warning h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">💸 ถอนค่าคอมรวม</h5>
+                        <p class="card-text display-6 text-warning">
+                            {{ total_commission_all|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-info h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">🎁 โบนัสรวม</h5>
+                        <p class="card-text display-6 text-info">
+                            {{ bonus_after_tax|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card {{ 'border-success' if balance >= 0 else 'border-danger' }} h-100">
+                    <div class="card-body">
+                        <h5 class="card-title {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                            🧮 ยอดดุลรวม
+                        </h5>
+                        <p class="card-text display-6 {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                            {{ total_balance_all|number_format(2) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+      {% endif %}
       <!-- Search Form -->
       <form class="mb-4">
           <div class="input-group">
@@ -134,28 +138,31 @@
                     <div>
                         <h5 class="mb-1">🔆 {{ transaction.agent }} 🔆</h5>
                         <small class="text-muted">{{ transaction.date.strftime('%d/%m/%Y') }}</small>
+                        <p class="text-muted">ผู้รับผิดชอบ: {{ transaction.created_by_name }}</p>
                     </div>
                     <div class="d-flex gap-2">
                         <a href="{{ url_for('edit_transaction', transaction_id=transaction._id) }}" 
                             class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit"></i> แก้ไข
                         </a>
                         <button class="btn btn-sm btn-outline-primary" 
                                 data-bs-toggle="collapse" 
                                 data-bs-target="#details-{{ loop.index }}">
                             ดูข้อมูลเพิ่มเติม
                         </button>
-                        <form method="POST" 
-                            action="{{ url_for('delete_transaction', transaction_id=transaction._id) }}"
-                            onsubmit="return confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')">
-                            <button type="submit" class="btn btn-sm btn-danger">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        {% if g.user and g.user.role == 'admin' %}
+                            <form method="POST" 
+                                action="{{ url_for('delete_transaction', transaction_id=transaction._id) }}"
+                                onsubmit="return confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        {% endif %}
                         <a href="/export/{{ transaction._id }}" 
                         class="btn btn-sm btn-success"
                         title="Export to Excel">
-                            <i class="fas fa-file-excel"></i>
+                            <i class="fas fa-file-excel"></i> ดาวน์โหลดชีต
                         </a>
                     </div>
                 </div>

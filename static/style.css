@@ -108,3 +108,101 @@ body {
     padding-bottom: 10px;
     border-bottom: 1px dashed #ddd;
 }
+
+/* เปลี่ยนรหัสผ่าน */
+.change-password-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.change-password-container .form-group label {
+    font-size: 14px;
+    color: #555;
+}
+
+.change-password-container .btn-primary {
+    width: 100%;
+}
+
+.flash-message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.flash-message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash-message.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Admin Panel */
+.admin-panel-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 40px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-panel-container .form-group label {
+    font-size: 14px;
+    color: #555;
+}
+
+.admin-panel-container .btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.admin-panel-container .btn-warning {
+    background-color: #ffc107;
+    border: none;
+}
+
+.admin-panel-container .btn-danger {
+    background-color: #dc3545;
+    border: none;
+}
+
+.admin-panel-container .table th {
+    background-color: #f1f1f1;
+}
+
+.flash-message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.flash-message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash-message.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.admin-panel-container .header-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.admin-panel-container .back-btn {
+    margin-bottom: 20px;
+    font-size: 16px;
+}

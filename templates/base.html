@@ -19,9 +19,29 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    {% if g.user %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            สวัสดี ( {{ g.user.username }} )
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item"><a class="nav-link" href="/">หน้าแรก</a></li>
                     <li class="nav-item"><a class="nav-link" href="/history">ประวัติ</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/agents">จัดการ Agent</a></li>
+                    {% if g.user %}
+                        {% if g.user.role == 'admin' %}
+                            <li class="nav-item"><a class="nav-link" href="/agents">จัดการ Agent</a></li>
+                            <!-- แสดงลิงก์ Admin Panel เฉพาะแอดมิน -->
+                            <li class="nav-item"><a class="nav-link" href="/admin-panel">Admin Panel</a></li>
+                        {% endif %}
+                        <!-- ลิงก์เปลี่ยนรหัสผ่าน -->
+                        <li class="nav-item"><a class="nav-link" href="/change-password">เปลี่ยนรหัสผ่าน</a></li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <button class="btn btn-sm btn-danger">ล็อกเอ้าท์</button>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -31,7 +51,7 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert" id="flash-{{ loop.index }}">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -46,6 +66,45 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // เลือกข้อความ flash ทั้งหมด
+            let flashMessages = document.querySelectorAll('.alert');
+
+            flashMessages.forEach(function(message, index) {
+                // ตั้งเวลาปิดข้อความ flash หลังจาก 3 วินาที (3000 ms)
+                setTimeout(function() {
+                    // ทำให้ข้อความหายไป (ลด opacity)
+                    message.style.opacity = 0;
+
+                    // หลังจาก opacity เป็น 0 ให้ลบข้อความออกจาก DOM
+                    setTimeout(function() {
+                        message.remove();  // ลบองค์ประกอบข้อความ flash
+                    }, 500); // ระยะเวลาในการซ่อน
+                }, 2000 * (index + 1)); // เวลาหน่วงระหว่างการปิดข้อความ
+            });
+        });
+    </script>
+    <script>
+        let timeout;
+
+        // ฟังก์ชันที่ตรวจจับการโต้ตอบของผู้ใช้
+        function resetTimer() {
+            clearTimeout(timeout);
+            timeout = setTimeout(logout, 300000); // 5 นาที = 300000 ms
+        }
+
+        // ฟังก์ชันที่ทำการล็อกเอ้าท์
+        function logout() {
+            // ส่งคำขอล็อกเอ้าท์ไปยัง Flask
+            window.location.href = "{{ url_for('logout') }}";
+        }
+
+        // ตรวจจับการโต้ตอบของผู้ใช้
+        window.onload = resetTimer;  // เมื่อหน้าโหลด
+        document.onmousemove = resetTimer;  // เมื่อเคลื่อนไหวเมาส์
+        document.onkeypress = resetTimer;  // เมื่อกดแป้นพิมพ์
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

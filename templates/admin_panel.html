@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container admin-panel-container">
+    <h3 class="text-center mb-4">Admin Panel - จัดการผู้ใช้</h3>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- ฟอร์มเพิ่มผู้ใช้ใหม่ -->
+    <form method="POST" class="mb-4">
+        <h4>เพิ่มผู้ใช้ใหม่</h4>
+        <div class="form-group mb-3">
+            <label for="username">ชื่อผู้ใช้</label>
+            <input type="text" class="form-control" name="username" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="password">รหัสผ่าน</label>
+            <input type="password" class="form-control" name="password" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="role">ยศ</label>
+            <select class="form-control" name="role" required>
+                <option value="admin">แอดมิน</option>
+                <option value="user">ผู้ใช้</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary" name="action" value="add">เพิ่มผู้ใช้</button>
+    </form>
+
+    <h4>ผู้ใช้ทั้งหมด</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ชื่อผู้ใช้</th>
+                <th>ยศ</th>
+                <th>การกระทำ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <!-- ฟอร์มสำหรับการแก้ไขข้อมูลผู้ใช้ -->
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user._id }}">แก้ไข</button>
+                </td>
+            </tr>
+
+            <!-- Modal สำหรับการแก้ไขข้อมูลผู้ใช้ -->
+            <div class="modal fade" id="editUserModal{{ user._id }}" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="POST">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editUserModalLabel">แก้ไขข้อมูลผู้ใช้</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="user_id" value="{{ user._id }}">
+                                <div class="form-group mb-3">
+                                    <label for="username">ชื่อผู้ใช้</label>
+                                    <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+                                </div>
+                                <!-- รหัสผ่านใหม่ -->
+                                <div class="form-group mb-3">
+                                    <label for="new_password">รหัสผ่านใหม่ (หากต้องการเปลี่ยน)</label>
+                                    <input type="password" class="form-control" name="new_password">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="role">ยศ</label>
+                                    <select class="form-control" name="role" required>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>แอดมิน</option>
+                                        <option value="user" {% if user.role == 'user' %}selected{% endif %}>ผู้ใช้</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                                <button type="submit" class="btn btn-primary" name="action" value="edit">บันทึกการเปลี่ยนแปลง</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

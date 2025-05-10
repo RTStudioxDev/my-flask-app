@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, abort, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, abort, jsonify, session, g
+from flask_login import current_user
+from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
@@ -11,6 +13,7 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from pymongo import TEXT
 from math import ceil
 from jinja2 import Environment
+from functools import wraps
 
 load_dotenv()
 
@@ -66,12 +69,159 @@ def number_format(value, precision=2):
     except (ValueError, TypeError):
         return f"{0.0:,.{precision}f}"
 
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def role_required(role):
+    def wrapper(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                return redirect(url_for('login'))
+            user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+            if user['role'] != role:
+                return redirect(url_for('index'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return wrapper
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # ค้นหาผู้ใช้ในฐานข้อมูล
+        user = db.users.find_one({'username': username})
+        
+        # ตรวจสอบรหัสผ่าน
+        if user and check_password_hash(user['password'], password):
+            # บันทึกข้อมูลผู้ใช้ใน session
+            session['user_id'] = str(user['_id'])
+            session['username'] = user['username']
+            flash('เข้าสู่ระบบสำเร็จ', 'success')
+            return redirect(url_for('index'))  # เปลี่ยนเส้นทางไปหน้า index.html
+        else:
+            flash('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'danger')
+            
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)  # ลบข้อมูล session
+    flash('ออกจากระบบสำเร็จ', 'success')  # แสดงข้อความออกจากระบบ
+    return redirect(url_for('login'))  # เปลี่ยนเส้นทางไปยังหน้า login
+
 @app.route('/')
+@login_required
 def index():
-    agents = list(db.agents.find())
-    return render_template('index.html', agents=agents)
+    # ตรวจสอบว่า user_id อยู่ใน session หรือไม่
+    if 'user_id' not in session:
+        return redirect(url_for('login'))  # ถ้าไม่มีก็ไปที่หน้า login
+
+    # ดึงข้อมูลผู้ใช้จากฐานข้อมูล
+    user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+
+    if user:
+        # ดึงข้อมูล agent ทั้งหมด
+        agents = list(db.agents.find())
+        return render_template('index.html', agents=agents, user=user)  # ส่งข้อมูลผู้ใช้และ agent ไปยังเทมเพลต
+    else:
+        # ถ้าไม่พบผู้ใช้ ให้ไปที่หน้า login
+        return redirect(url_for('login'))
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required  # ทำให้เฉพาะผู้ใช้ที่ล็อกอินสามารถเข้าถึงได้
+def change_password():
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        confirm_new_password = request.form['confirm_new_password']
+
+        # ตรวจสอบว่ารหัสผ่านใหม่กับรหัสผ่านยืนยันใหม่ตรงกัน
+        if new_password != confirm_new_password:
+            flash('รหัสผ่านใหม่ไม่ตรงกัน', 'danger')
+            return redirect(url_for('change_password'))
+
+        # ตรวจสอบว่ารหัสผ่านเก่าถูกต้องหรือไม่
+        user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+        if not user or not check_password_hash(user['password'], old_password):
+            flash('รหัสผ่านเก่าไม่ถูกต้อง', 'danger')
+            return redirect(url_for('change_password'))
+
+        # อัปเดตรหัสผ่านใหม่ในฐานข้อมูล
+        hashed_password = generate_password_hash(new_password)
+        db.users.update_one({'_id': ObjectId(session['user_id'])}, {'$set': {'password': hashed_password}})
+        flash('เปลี่ยนรหัสผ่านสำเร็จ', 'success')
+        return redirect(url_for('index'))  # เปลี่ยนเส้นทางกลับไปหน้า index หรือหน้าอื่นๆ ที่ต้องการ
+
+    return render_template('change_password.html')  # แสดงฟอร์มการเปลี่ยนรหัสผ่าน
+
+@app.route('/admin-panel', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')  # ตรวจสอบว่าผู้ใช้เป็น admin หรือไม่
+def admin_panel():
+    # ดึงข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูล
+    users = db.users.find()
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        # ฟังก์ชันในการเพิ่มผู้ใช้ใหม่
+        if action == 'add':
+            username = request.form['username']
+            password = request.form['password']
+            role = request.form['role']
+
+            if username and password and role:
+                # สร้างรหัสผ่านที่เข้ารหัส
+                hashed_password = generate_password_hash(password)
+                
+                # เพิ่มผู้ใช้ใหม่ในฐานข้อมูล
+                db.users.insert_one({
+                    'username': username,
+                    'password': hashed_password,
+                    'role': role,  # กำหนดบทบาท (role)
+                    'created_at': datetime.now()
+                })
+                flash('เพิ่มผู้ใช้ใหม่สำเร็จ', 'success')
+            else:
+                flash('กรุณากรอกข้อมูลให้ครบถ้วน', 'danger')
+
+        # ฟังก์ชันในการแก้ไขข้อมูลผู้ใช้
+        if action == 'edit':
+            user_id = request.form['user_id']
+            username = request.form['username']
+            role = request.form['role']
+            new_password = request.form.get('new_password')
+
+            # ตรวจสอบว่ามีการกรอกรหัสผ่านใหม่หรือไม่
+            update_data = {'username': username, 'role': role}
+
+            if new_password:
+                # ถ้ามีการกรอกรหัสผ่านใหม่ จะทำการเข้ารหัสและอัปเดต
+                hashed_password = generate_password_hash(new_password)
+                update_data['password'] = hashed_password
+
+            # อัปเดตข้อมูลผู้ใช้
+            db.users.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$set': update_data}
+            )
+            flash('แก้ไขข้อมูลผู้ใช้สำเร็จ', 'success')
+        
+        return redirect(url_for('admin_panel'))
+
+    return render_template('admin_panel.html', users=users)
 
 @app.route('/submit', methods=['POST'])
+@login_required
 def submit_transaction():
     try:
         # รับข้อมูลบัญชีแบบไดนามิก
@@ -99,7 +249,8 @@ def submit_transaction():
             'bonus': float(request.form.get('bonus', 0)),
             'commission': float(request.form.get('commission', 0)),
             'admin_approved': int(request.form.get('admin_approved', 0)),
-            'created_at': datetime.now()
+            'created_at': datetime.now(),
+            'created_by': session.get('user_id')
         }
 
         if not transaction_data['agent']:
@@ -153,6 +304,12 @@ def show_history():
         transaction.setdefault('deposit_amounts', [])
         transaction.setdefault('withdrawal_accounts', [])
         transaction.setdefault('withdrawal_amounts', [])
+
+        # ดึงชื่อผู้ใช้ที่รับผิดชอบจาก session
+        user_id = transaction.get('created_by')
+        if user_id:
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            transaction['created_by_name'] = user.get('username', 'Unknown')
 
     total_deposit = sum(sum(t.get('deposit_amounts', [])) for t in transactions_list)
     total_withdrawal = sum(sum(t.get('withdrawal_amounts', [])) for t in transactions_list)
@@ -213,11 +370,23 @@ def show_history():
                         selected_month=selected_month,
                         selected_year=selected_year)
 
+@app.before_request
+def before_request():
+    if 'user_id' in session:
+        # ดึงข้อมูลผู้ใช้จากฐานข้อมูล
+        user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+        g.user = user  # เก็บข้อมูลผู้ใช้ใน g เพื่อให้เข้าถึงได้ในทุกๆ request
+    else:
+        g.user = None
+
 @app.route('/agents', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')  # ตรวจสอบบทบาทของผู้ใช้เป็น admin
 def manage_agents():
     if request.method == 'POST':
         action = request.form.get('action')
-        
+
+        # การเพิ่ม Agent
         if action == 'add':
             agent_name = request.form.get('name')
             if agent_name:
@@ -228,20 +397,29 @@ def manage_agents():
                 flash('เพิ่ม Agent สำเร็จ', 'success')
             else:
                 flash('กรุณากรอกชื่อ Agent', 'danger')
-            
+
+        # การลบ Agent
         elif action == 'delete':
             try:
-                agent_id = ObjectId(request.form.get('agent_id'))
-                result = db.agents.delete_one({'_id': agent_id})
-                if result.deleted_count > 0:
-                    flash('ลบ Agent สำเร็จ', 'success')
+                agent_id = request.form.get('agent_id')
+
+                # ตรวจสอบว่า agent_id เป็น ObjectId หรือไม่
+                if ObjectId.is_valid(agent_id):
+                    agent_id = ObjectId(agent_id)
+                    result = db.agents.delete_one({'_id': agent_id})
+                    if result.deleted_count > 0:
+                        flash('ลบ Agent สำเร็จ', 'success')
+                    else:
+                        flash('ไม่พบ Agent ที่ต้องการลบ', 'danger')
                 else:
-                    flash('ไม่พบ Agent ที่ต้องการลบ', 'danger')
+                    flash('ID ของ Agent ไม่ถูกต้อง', 'danger')
+
             except Exception as e:
                 flash(f'เกิดข้อผิดพลาด: {str(e)}', 'danger')
-        
+
         return redirect(url_for('manage_agents'))
-    
+
+    # ดึงข้อมูล Agent ทั้งหมด
     agents = list(db.agents.find().sort('name', 1))
     return render_template('agents.html', agents=agents)
 
@@ -303,16 +481,22 @@ def edit_transaction(transaction_id):
         return redirect(url_for('show_history'))
 
 @app.route('/delete-transaction/<transaction_id>', methods=['POST'])
+@login_required
+@role_required('admin')  # เพิ่มการตรวจสอบยศเป็นแอดมิน
 def delete_transaction(transaction_id):
     try:
+        # แปลง ID ของรายการให้เป็น ObjectId
         obj_id = ObjectId(transaction_id)
+        
+        # ลบรายการจากฐานข้อมูล
         result = db.transactions.delete_one({'_id': obj_id})
         
+        # ตรวจสอบว่ามีการลบรายการหรือไม่
         if result.deleted_count > 0:
             flash('ลบรายการสำเร็จ', 'success')
         else:
             flash('ไม่พบรายการที่ต้องการลบ', 'danger')
-            
+    
     except Exception as e:
         flash(f'เกิดข้อผิดพลาด: {str(e)}', 'danger')
     
